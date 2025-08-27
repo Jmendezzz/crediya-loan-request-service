@@ -1,0 +1,20 @@
+##Spring Configuration
+server:
+  port: 8081
+spring:
+  application:
+    name: CrediYa
+  devtools:
+    add-properties: false
+  sql:
+    init:
+      mode: "always"
+      schema-locations: "schema.sql"
+  profiles:
+    include:
+database:
+  host: "${LOAN_REQUEST_SERVICE_DB_HOST}"
+  port: "${LOAN_REQUEST_SERVICE_DB_PORT}"
+  username: "${LOAN_REQUEST_SERVICE_DB_USERNAME}"
+  password: "${LOAN_REQUEST_SERVICE_DB_PASSWORD}"
+  name: "${LOAN_REQUEST_SERVICE_DB_NAME}"

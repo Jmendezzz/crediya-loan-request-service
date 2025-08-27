@@ -1,0 +1,5 @@
+CREATE TABLE IF NOT EXISTS loan_request_states (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(50) NOT NULL UNIQUE,
+    description VARCHAR(255) NOT NULL
+);
