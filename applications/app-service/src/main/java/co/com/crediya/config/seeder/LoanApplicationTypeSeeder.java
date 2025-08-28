@@ -1,8 +1,8 @@
 package co.com.crediya.config.seeder;
 
-import co.com.crediya.model.loanrequesttype.LoanRequestType;
-import co.com.crediya.model.loanrequesttype.constants.LoanRequestTypeConstant;
-import co.com.crediya.model.loanrequesttype.gateways.LoanRequestTypeRepository;
+import co.com.crediya.model.loanapplicationtype.LoanApplicationType;
+import co.com.crediya.model.loanapplicationtype.constants.LoanApplicationTypeConstant;
+import co.com.crediya.model.loanapplicationtype.gateways.LoanApplicationTypeRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
@@ -13,16 +13,16 @@ import reactor.core.publisher.Flux;
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class LoanRequestTypeSeeder implements CommandLineRunner {
-    private final LoanRequestTypeRepository repository;
+public class LoanApplicationTypeSeeder implements CommandLineRunner {
+    private final LoanApplicationTypeRepository repository;
 
     @Override
     public void run(String... args) {
-        Flux.fromArray(LoanRequestTypeConstant.values())
+        Flux.fromArray(LoanApplicationTypeConstant.values())
                 .flatMap(typeEnum -> repository.findByName(typeEnum.getName())
                         .switchIfEmpty(
                                 repository.save(
-                                    LoanRequestType.builder()
+                                    LoanApplicationType.builder()
                                             .name(typeEnum.getName())
                                             .description(typeEnum.getDescription())
                                             .autoValidation(typeEnum.getAutoValidation())

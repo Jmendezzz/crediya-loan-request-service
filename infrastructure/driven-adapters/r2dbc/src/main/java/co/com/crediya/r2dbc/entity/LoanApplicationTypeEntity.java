@@ -6,7 +6,7 @@ import org.springframework.data.relational.core.mapping.Table;
 
 @Data
 @Table("loan_request_types")
-public class LoanRequestTypeEntity {
+public class LoanApplicationTypeEntity {
     @Id
     private Long id;
     private String name;

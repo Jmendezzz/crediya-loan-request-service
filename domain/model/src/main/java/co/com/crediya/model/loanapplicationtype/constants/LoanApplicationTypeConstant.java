@@ -1,11 +1,11 @@
-package co.com.crediya.model.loanrequesttype.constants;
+package co.com.crediya.model.loanapplicationtype.constants;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 @Getter
 @AllArgsConstructor
-public enum LoanRequestTypeConstant {
+public enum LoanApplicationTypeConstant {
     CONSUMO(
             "CONSUMO",
             500_000L,

@@ -1,4 +1,4 @@
-package co.com.crediya.model.loanrequesttype;
+package co.com.crediya.model.loanapplicationtype;
 import lombok.*;
 
 @Getter
@@ -6,7 +6,7 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder(toBuilder = true)
-public class LoanRequestType {
+public class LoanApplicationType {
     private Long id;
     private String name;
     private String description;
