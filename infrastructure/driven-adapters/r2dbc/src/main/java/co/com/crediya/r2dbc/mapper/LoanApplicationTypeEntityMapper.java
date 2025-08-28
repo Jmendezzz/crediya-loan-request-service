@@ -5,7 +5,7 @@ import co.com.crediya.r2dbc.entity.LoanApplicationTypeEntity;
 import org.mapstruct.Mapper;
 
 @Mapper(componentModel = "spring")
-public interface LoanRequestTypeEntityMapper {
+public interface LoanApplicationTypeEntityMapper {
     LoanApplicationType toDomain(LoanApplicationTypeEntity loanApplicationTypeEntity);
     LoanApplicationTypeEntity toEntity(LoanApplicationType loanApplicationType);
 }

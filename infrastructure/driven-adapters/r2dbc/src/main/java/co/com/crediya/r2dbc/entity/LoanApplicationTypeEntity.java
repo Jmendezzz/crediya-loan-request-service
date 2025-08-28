@@ -5,7 +5,7 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.relational.core.mapping.Table;
 
 @Data
-@Table("loan_request_types")
+@Table("loan_application_types")
 public class LoanApplicationTypeEntity {
     @Id
     private Long id;
