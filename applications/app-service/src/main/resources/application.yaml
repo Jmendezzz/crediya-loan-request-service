@@ -1,9 +1,8 @@
-##Spring Configuration
 server:
   port: 8081
 spring:
   application:
-    name: CrediYa
+    name: "CrediYa"
   devtools:
     add-properties: false
   sql:
@@ -11,10 +10,24 @@ spring:
       mode: "always"
       schema-locations: "schema.sql"
   profiles:
-    include:
+    include: null
 database:
   host: "${LOAN_REQUEST_SERVICE_DB_HOST}"
   port: "${LOAN_REQUEST_SERVICE_DB_PORT}"
   username: "${LOAN_REQUEST_SERVICE_DB_USERNAME}"
   password: "${LOAN_REQUEST_SERVICE_DB_PASSWORD}"
   name: "${LOAN_REQUEST_SERVICE_DB_NAME}"
+services:
+  user:
+    base-url: "http://localhost:8080"
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "health,prometheus"
+  endpoint:
+    health:
+      probes:
+        enabled: true
+cors:
+  allowed-origins: "http://localhost:4200,http://localhost:8080"
