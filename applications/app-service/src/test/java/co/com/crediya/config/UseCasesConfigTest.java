@@ -1,44 +1,33 @@
 package co.com.crediya.config;
 
+import co.com.crediya.model.loanapplication.gateways.LoanApplicationRepository;
+import co.com.crediya.model.loanapplication.gateways.UserService;
+import co.com.crediya.model.loanapplicationstate.gateways.LoanApplicationStateRepository;
+import co.com.crediya.model.loanapplicationtype.gateways.LoanApplicationTypeRepository;
+import co.com.crediya.usecase.loanapplication.LoanApplicationUseCase;
 import org.junit.jupiter.api.Test;
-import org.springframework.context.annotation.AnnotationConfigApplicationContext;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
-public class UseCasesConfigTest {
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.mockito.Mockito.mock;
+
+class UseCasesConfigTest {
 
     @Test
-    void testUseCaseBeansExist() {
-        try (AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(TestConfig.class)) {
-            String[] beanNames = context.getBeanDefinitionNames();
+    void shouldCreateLoanApplicationUseCase() {
+        LoanApplicationRepository loanApplicationRepository = mock(LoanApplicationRepository.class);
+        LoanApplicationTypeRepository loanApplicationTypeRepository = mock(LoanApplicationTypeRepository.class);
+        LoanApplicationStateRepository loanApplicationStateRepository = mock(LoanApplicationStateRepository.class);
+        UserService userService = mock(UserService.class);
 
-            boolean useCaseBeanFound = false;
-            for (String beanName : beanNames) {
-                if (beanName.endsWith("UseCase")) {
-                    useCaseBeanFound = true;
-                    break;
-                }
-            }
+        UseCasesConfig config = new UseCasesConfig();
+        LoanApplicationUseCase useCase = config.loanApplicationUseCase(
+                loanApplicationRepository,
+                loanApplicationTypeRepository,
+                loanApplicationStateRepository,
+                userService
+        );
 
-            assertTrue(useCaseBeanFound, "No beans ending with 'Use Case' were found");
-        }
+        assertThat(useCase).isNotNull();
     }
 
-    @Configuration
-    @Import(UseCasesConfig.class)
-    static class TestConfig {
-
-        @Bean
-        public MyUseCase myUseCase() {
-            return new MyUseCase();
-        }
-    }
-
-    static class MyUseCase {
-        public String execute() {
-            return "MyUseCase Test";
-        }
-    }
 }

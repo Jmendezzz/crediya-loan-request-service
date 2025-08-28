@@ -17,18 +17,20 @@ public class LoanApplicationStateSeeder implements CommandLineRunner {
     private final LoanApplicationStateRepository repository;
 
     @Override
-    public void run(String... args) throws Exception {
-        Flux.just(
-                        new LoanApplicationState(null, LoanApplicationStateConstant.PENDING_REVIEW, LoanApplicationStateConstant.PENDING_REVIEW_DESC),
-                        new LoanApplicationState(null, LoanApplicationStateConstant.APPROVED, LoanApplicationStateConstant.APPROVED_DESC),
-                        new LoanApplicationState(null, LoanApplicationStateConstant.REJECTED, LoanApplicationStateConstant.REJECTED_DESC),
-                        new LoanApplicationState(null, LoanApplicationStateConstant.CANCELED, LoanApplicationStateConstant.CANCELED_DESC)
+    public void run(String... args) {
+        Flux.fromArray(LoanApplicationStateConstant.values())
+                .flatMap(stateEnum -> repository.findByName(stateEnum.getName())
+                        .switchIfEmpty(
+                                repository.save(
+                                        LoanApplicationState.builder()
+                                                .name(stateEnum.getName())
+                                                .description(stateEnum.getDescription())
+                                                .build()
+                                )
+                        )
                 )
-                .flatMap(state ->
-                        repository.findByName(state.getName())
-                        .switchIfEmpty(repository.save(state))
-                )
-                .doOnNext(state -> log.info("State created/verified: {} - {}", state.getName(), state.getDescription()))
-                .subscribe();
+                .doOnNext(state -> log.info("Loan state created/verified: {} - {}", state.getName(), state.getDescription()))
+                .then()
+                .block();
     }
 }
