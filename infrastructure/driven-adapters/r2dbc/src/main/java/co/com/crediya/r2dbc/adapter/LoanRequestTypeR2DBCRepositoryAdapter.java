@@ -1,13 +1,8 @@
 package co.com.crediya.r2dbc.adapter;
 
-import co.com.crediya.model.loanrequeststate.LoanRequestState;
-import co.com.crediya.model.loanrequeststate.gateways.LoanRequestStateRepository;
 import co.com.crediya.model.loanrequesttype.LoanRequestType;
 import co.com.crediya.model.loanrequesttype.gateways.LoanRequestTypeRepository;
-import co.com.crediya.r2dbc.entity.LoanRequestTypeEntity;
-import co.com.crediya.r2dbc.mapper.LoanRequestStateEntityMapper;
 import co.com.crediya.r2dbc.mapper.LoanRequestTypeEntityMapper;
-import co.com.crediya.r2dbc.repository.LoanRequestStateReactiveRepository;
 import co.com.crediya.r2dbc.repository.LoanRequestTypeReactiveRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;

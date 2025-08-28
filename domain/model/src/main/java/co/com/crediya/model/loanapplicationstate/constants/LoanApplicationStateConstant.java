@@ -1,6 +1,6 @@
-package co.com.crediya.model.loanrequeststate.constants;
+package co.com.crediya.model.loanapplicationstate.constants;
 
-public class LoanRequestStateConstant {
+public class LoanApplicationStateConstant {
 
     public static final String PENDING_REVIEW = "PENDIENTE_REVISION";
     public static final String APPROVED = "APROBADA";

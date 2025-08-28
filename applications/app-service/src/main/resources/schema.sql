@@ -1,11 +1,11 @@
-CREATE TABLE IF NOT EXISTS loan_request_states (
+CREATE TABLE IF NOT EXISTS loan_application_states (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(50) NOT NULL UNIQUE,
     description VARCHAR(255) NOT NULL
 );
 
 
-CREATE TABLE IF NOT EXISTS loan_request_types (
+CREATE TABLE IF NOT EXISTS loan_application_types (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(50) NOT NULL UNIQUE,
     min_amount BIGINT NOT NULL,

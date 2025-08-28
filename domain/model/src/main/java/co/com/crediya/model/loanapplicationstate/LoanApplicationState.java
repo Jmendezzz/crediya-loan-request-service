@@ -1,4 +1,4 @@
-package co.com.crediya.model.loanrequeststate;
+package co.com.crediya.model.loanapplicationstate;
 import lombok.*;
 
 
@@ -7,7 +7,7 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder(toBuilder = true)
-public class LoanRequestState {
+public class LoanApplicationState {
     private Long id;
     private String name;
     private String description;
