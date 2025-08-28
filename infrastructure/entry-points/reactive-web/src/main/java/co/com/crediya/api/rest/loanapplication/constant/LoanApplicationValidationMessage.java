@@ -1,12 +1,10 @@
-package co.com.crediya.api.rest.user.constant;
+package co.com.crediya.api.rest.loanapplication.constant;
 
-public class UserValidationMessage {
-    public static final String FIRST_NAME_REQUIRED = "El nombre es obligatorio";
-    public static final String LAST_NAME_REQUIRED = "El apellido es obligatorio";
-    public static final String IDENTITY_NUMBER_REQUIRED = "El número de identificación es obligatorio";
-    public static final String EMAIL_REQUIRED = "El correo electrónico es obligatorio";
-    public static final String EMAIL_INVALID = "El formato del correo electrónico no es válido";
-    public static final String BASE_SALARY_REQUIRED = "El salario base es obligatorio";
-    public static final String BASE_SALARY_RANGE = "El salario base  no es válido";
-    public static final String BIRTHDATE_INVALID = "La fecha de nacimiento no es válida";
+public class LoanApplicationValidationMessage {
+    public static final String IDENTITY_NUMBER_REQUIRED = "El número de identificación del cliente es obligatorio";
+    public static final String AMOUNT_REQUIRED = "El monto solicitado es obligatorio";
+    public static final String AMOUNT_POSITIVE = "El monto debe ser un valor positivo";
+    public static final String TERM_REQUIRED = "El plazo del préstamo es obligatorio";
+    public static final String TERM_MIN = "El plazo debe ser al menos de 1 mes";
+    public static final String TYPE_REQUIRED = "El tipo de préstamo es obligatorio";
 }

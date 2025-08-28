@@ -1,16 +1,16 @@
-package co.com.crediya.api.rest.user.constant;
+package co.com.crediya.api.rest.loanapplication.constant;
 
 import co.com.crediya.api.constant.ApiResource;
 import co.com.crediya.api.constant.ApiVersion;
 import lombok.Getter;
 
 @Getter
-public enum UserEndpoint {
-    CREATE_APPLICANT(
-             "/applicants",
-            "createApplicant",
-            "Crear solicitante",
-            "Registra un nuevo solicitante en el sistema"
+public enum LoanApplicationEndpoint {
+    CREATE_LOAN_APPLICATION(
+             "/create",
+            "createLoanApplication",
+            "Crear solicitud de prestamo",
+            "Registra una nueva solicitud de prestamo en el sistema"
     );
 
     private final String path;
@@ -18,8 +18,8 @@ public enum UserEndpoint {
     private final String summary;
     private final String description;
 
-    UserEndpoint(String path, String operationId, String summary, String description) {
-        this.path = ApiVersion.V1.getPrefix() + ApiResource.USERS.getResource() + path;
+    LoanApplicationEndpoint(String path, String operationId, String summary, String description) {
+        this.path = ApiVersion.V1.getVersion() + ApiResource.LOAN_APPLICATIONS.getResource() + path;
         this.operationId = operationId;
         this.summary = summary;
         this.description = description;

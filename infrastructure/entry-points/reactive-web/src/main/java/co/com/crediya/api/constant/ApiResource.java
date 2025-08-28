@@ -6,7 +6,7 @@ import lombok.RequiredArgsConstructor;
 @Getter
 @RequiredArgsConstructor
 public enum ApiResource {
-    USERS("/users");
+    LOAN_APPLICATIONS("/loan-applications");
 
-    private final String resource;
+    final String resource;
 }

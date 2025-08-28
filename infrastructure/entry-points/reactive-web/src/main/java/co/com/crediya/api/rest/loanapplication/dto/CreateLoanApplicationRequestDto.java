@@ -1,45 +1,38 @@
 package co.com.crediya.api.rest.loanapplication.dto;
 
-import co.com.crediya.api.rest.user.constant.UserOpenApiSchema;
-import co.com.crediya.api.rest.user.constant.UserValidationMessage;
-import co.com.crediya.model.user.constants.UserConstant;
+
+import co.com.crediya.api.rest.loanapplication.constant.LoanApplicationOpenApiSchema;
+import co.com.crediya.api.rest.loanapplication.constant.LoanApplicationValidationMessage;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.*;
 
-import java.time.LocalDate;
+import static co.com.crediya.model.loanapplication.constants.LoanApplicationConstant.MIN_TERM_IN_MONTHS;
 
-public record CreateApplicantRequestDto(
+public record CreateLoanApplicationRequestDto(
 
-        @NotBlank(message = UserValidationMessage.FIRST_NAME_REQUIRED)
-        @Schema(description = UserOpenApiSchema.FIRST_NAME_DESCRIPTION, example = UserOpenApiSchema.FIRST_NAME_EXAMPLE)
-        String firstName,
+        @NotBlank(message = LoanApplicationValidationMessage.IDENTITY_NUMBER_REQUIRED)
+        @Schema(description = LoanApplicationOpenApiSchema.IDENTITY_NUMBER_DESCRIPTION,
+                example = LoanApplicationOpenApiSchema.IDENTITY_NUMBER_EXAMPLE)
+        String customerIdentityNumber,
 
-        @NotBlank(message = UserValidationMessage.LAST_NAME_REQUIRED)
-        @Schema(description = UserOpenApiSchema.LAST_NAME_DESCRIPTION, example = UserOpenApiSchema.LAST_NAME_EXAMPLE)
-        String lastName,
+        @NotNull(message = LoanApplicationValidationMessage.AMOUNT_REQUIRED)
+        @Positive(message = LoanApplicationValidationMessage.AMOUNT_POSITIVE)
+        @Schema(description = LoanApplicationOpenApiSchema.AMOUNT_DESCRIPTION,
+                example = LoanApplicationOpenApiSchema.AMOUNT_EXAMPLE)
+        Double amount,
 
-        @NotBlank(message = UserValidationMessage.IDENTITY_NUMBER_REQUIRED)
-        @Schema(description = UserOpenApiSchema.IDENTITY_NUMBER_DESCRIPTION, example = UserOpenApiSchema.IDENTITY_NUMBER_EXAMPLE)
-        String identityNumber,
+        @NotNull(message = LoanApplicationValidationMessage.TERM_REQUIRED)
+        @Min(value = MIN_TERM_IN_MONTHS, message = LoanApplicationValidationMessage.TERM_MIN)
+        @Schema(description = LoanApplicationOpenApiSchema.TERM_DESCRIPTION,
+                example = LoanApplicationOpenApiSchema.TERM_EXAMPLE)
+        Integer termInMonths,
 
-        @Schema(description = UserOpenApiSchema.PHONE_NUMBER_DESCRIPTION, example = UserOpenApiSchema.PHONE_NUMBER_EXAMPLE)
-        String phoneNumber,
+        @NotNull(message = LoanApplicationValidationMessage.TYPE_REQUIRED)
+        @Schema(description = LoanApplicationOpenApiSchema.TYPE_ID_DESCRIPTION,
+                example = LoanApplicationOpenApiSchema.TYPE_ID_EXAMPLE)
+        Long typeId,
 
-        @Past(message = UserValidationMessage.BIRTHDATE_INVALID)
-        @Schema(description = UserOpenApiSchema.BIRTHDATE_DESCRIPTION, example = UserOpenApiSchema.BIRTHDATE_EXAMPLE)
-        LocalDate birthdate,
-
-        @Schema(description = UserOpenApiSchema.ADDRESS_DESCRIPTION, example = UserOpenApiSchema.ADDRESS_EXAMPLE)
-        String address,
-
-        @NotNull(message = UserValidationMessage.BASE_SALARY_REQUIRED)
-        @Min(value = UserConstant.MIN_BASE_SALARY, message = UserValidationMessage.BASE_SALARY_RANGE)
-        @Max(value = UserConstant.MAX_BASE_SALARY, message = UserValidationMessage.BASE_SALARY_RANGE)
-        @Schema(description = UserOpenApiSchema.BASE_SALARY_DESCRIPTION, example = UserOpenApiSchema.BASE_SALARY_EXAMPLE)
-        Long baseSalary,
-
-        @NotBlank(message = UserValidationMessage.EMAIL_REQUIRED)
-        @Email(message = UserValidationMessage.EMAIL_INVALID)
-        @Schema(description = UserOpenApiSchema.EMAIL_DESCRIPTION, example = UserOpenApiSchema.EMAIL_EXAMPLE)
-        String email
+        @Schema(description = LoanApplicationOpenApiSchema.STATE_ID_DESCRIPTION,
+                example = LoanApplicationOpenApiSchema.STATE_ID_EXAMPLE)
+        Long stateId
 ) {}

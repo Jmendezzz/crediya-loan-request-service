@@ -1,39 +1,30 @@
 package co.com.crediya.api.rest.loanapplication.dto;
 
-import co.com.crediya.api.rest.user.constant.UserOpenApiSchema;
-import co.com.crediya.model.role.Role;
+import co.com.crediya.api.rest.loanapplication.constant.LoanApplicationOpenApiSchema;
+import co.com.crediya.model.loanapplicationstate.LoanApplicationState;
+import co.com.crediya.model.loanapplicationtype.LoanApplicationType;
 import io.swagger.v3.oas.annotations.media.Schema;
 
-import java.time.LocalDate;
+public record LoanApplicationResponseDto(
 
-public record UserResponseDto (
-
-        @Schema(description = UserOpenApiSchema.ID_DESCRIPTION)
+        @Schema(description = LoanApplicationOpenApiSchema.ID_DESCRIPTION)
         Long id,
 
-        @Schema(description = UserOpenApiSchema.FIRST_NAME_DESCRIPTION, example = UserOpenApiSchema.FIRST_NAME_EXAMPLE)
-        String firstName,
+        @Schema(description = LoanApplicationOpenApiSchema.IDENTITY_NUMBER_DESCRIPTION,
+                example = LoanApplicationOpenApiSchema.IDENTITY_NUMBER_EXAMPLE)
+        String customerIdentityNumber,
 
-        @Schema(description = UserOpenApiSchema.LAST_NAME_DESCRIPTION, example = UserOpenApiSchema.LAST_NAME_EXAMPLE)
-        String lastName,
+        @Schema(description = LoanApplicationOpenApiSchema.AMOUNT_DESCRIPTION,
+                example = LoanApplicationOpenApiSchema.AMOUNT_EXAMPLE)
+        Double amount,
 
-        @Schema(description = UserOpenApiSchema.IDENTITY_NUMBER_DESCRIPTION, example = UserOpenApiSchema.IDENTITY_NUMBER_EXAMPLE)
-        String identityNumber,
+        @Schema(description = LoanApplicationOpenApiSchema.TERM_DESCRIPTION,
+                example = LoanApplicationOpenApiSchema.TERM_EXAMPLE)
+        Integer termInMonths,
 
-        @Schema(description = UserOpenApiSchema.PHONE_NUMBER_DESCRIPTION, example = UserOpenApiSchema.PHONE_NUMBER_EXAMPLE)
-        String phoneNumber,
+        @Schema(description = LoanApplicationOpenApiSchema.TYPE_SCHEMA_DESCRIPTION)
+        LoanApplicationType type,
 
-        @Schema(description = UserOpenApiSchema.BIRTHDATE_DESCRIPTION, example = UserOpenApiSchema.BIRTHDATE_EXAMPLE)
-        LocalDate birthdate,
-
-        @Schema(description = UserOpenApiSchema.ADDRESS_DESCRIPTION, example = UserOpenApiSchema.ADDRESS_EXAMPLE)
-        String address,
-
-        @Schema(description = UserOpenApiSchema.BASE_SALARY_DESCRIPTION, example = UserOpenApiSchema.BASE_SALARY_EXAMPLE)
-        Long baseSalary,
-
-        @Schema(description = UserOpenApiSchema.EMAIL_DESCRIPTION, example = UserOpenApiSchema.EMAIL_EXAMPLE)
-        String email,
-
-        Role role
+        @Schema(description = LoanApplicationOpenApiSchema.STATE_SCHEMA_DESCRIPTION)
+        LoanApplicationState state
 ) {}

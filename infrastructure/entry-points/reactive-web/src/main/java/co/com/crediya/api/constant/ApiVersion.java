@@ -8,5 +8,5 @@ import lombok.RequiredArgsConstructor;
 public enum ApiVersion {
     V1("/api/v1");
 
-    private final String prefix;
+    private final String version;
 }
