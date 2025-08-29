@@ -1,5 +1,6 @@
 package co.com.crediya.api.rest.loanapplication;
 
+import co.com.crediya.api.rest.loanapplication.constant.LoanApplicationHandlerLog;
 import co.com.crediya.api.rest.loanapplication.dto.CreateLoanApplicationRequestDto;
 import co.com.crediya.api.rest.loanapplication.dto.LoanApplicationResponseDto;
 import co.com.crediya.api.rest.loanapplication.mapper.LoanApplicationRequestMapper;
@@ -23,8 +24,12 @@ public class LoanApplicationHandler {
 
     public Mono<LoanApplicationResponseDto> createApplicant(CreateLoanApplicationRequestDto dto) {
         return validator.validate(dto)
+                .doOnSubscribe(s -> log.info(LoanApplicationHandlerLog.CREATE_VALIDATION.getMessage()))
                 .map(requestMapper::toDomain)
+                .doOnNext(domain -> log.info(LoanApplicationHandlerLog.CREATE_START.getMessage(), dto))
                 .flatMap(loanApplicationUseCase::createLoanApplication)
+                .doOnSuccess(app -> log.info(LoanApplicationHandlerLog.CREATE_SUCCESS.getMessage(), app.getId()))
+                .doOnError(error -> log.error(LoanApplicationHandlerLog.CREATE_ERROR.getMessage(), error.getMessage(), error))
                 .map(responseMapper::toDto);
     }
 }
