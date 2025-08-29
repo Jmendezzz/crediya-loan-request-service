@@ -30,7 +30,7 @@ subprojects {
     dependencies {
         implementation 'io.projectreactor:reactor-core'
         implementation 'io.projectreactor.addons:reactor-extra'
-
+        implementation "io.micrometer:context-propagation:${contextPropagationVersion}"
         testImplementation 'io.projectreactor.tools:blockhound-junit-platform:1.0.13.RELEASE'
 
         testImplementation 'io.projectreactor:reactor-test'

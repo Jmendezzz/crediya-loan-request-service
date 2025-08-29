@@ -9,6 +9,7 @@ buildscript {
         r2dbcMysqlVersion = '1.4.0'
         mapstructVersion = '1.6.3'
         openApiWebfluxVersion = '2.5.0'
+        contextPropagationVersion = '1.1.0'
 	}
 }
 
