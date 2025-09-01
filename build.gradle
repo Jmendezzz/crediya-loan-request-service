@@ -10,6 +10,7 @@ buildscript {
         mapstructVersion = '1.6.3'
         openApiWebfluxVersion = '2.5.0'
         contextPropagationVersion = '1.1.0'
+        jwtVersion = '0.12.3'
 	}
 }
 

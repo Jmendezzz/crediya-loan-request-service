@@ -89,22 +89,24 @@ jacoco {
 
 tasks.register('jacocoMergedReport', JacocoReport) {
     dependsOn = [test, subprojects.jacocoTestReport, pitestReportAggregate]
-    additionalSourceDirs.setFrom files(subprojects.sourceSets.main.allSource.srcDirs)
-    sourceDirectories.setFrom files(subprojects.sourceSets.main.allSource.srcDirs)
-    classDirectories.setFrom files(subprojects.sourceSets.main.output)
+
+    def domainProjects = subprojects.findAll {
+        it.name in ['model', 'usecase']
+    }
+
+    additionalSourceDirs.setFrom files(domainProjects.sourceSets.main.allSource.srcDirs)
+    sourceDirectories.setFrom files(domainProjects.sourceSets.main.allSource.srcDirs)
+    classDirectories.setFrom files(domainProjects.sourceSets.main.output)
+
     executionData.setFrom project.fileTree(dir: '.', include: '**/build/jacoco/test.exec')
+
     reports {
-        xml.setRequired true
-        csv.setRequired false
-        html.setRequired true
+        xml.required = true
+        html.required = true
+        csv.required = false
     }
 }
 
-tasks.withType(JavaCompile).configureEach {
-    options.compilerArgs = [
-            '-Amapstruct.suppressGeneratorTimestamp=true'
-    ]
-}
 
 pitestReportAggregate {
     doLast {
