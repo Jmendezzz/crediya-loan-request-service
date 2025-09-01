@@ -30,7 +30,6 @@ subprojects {
     dependencies {
         implementation 'io.projectreactor:reactor-core'
         implementation 'io.projectreactor.addons:reactor-extra'
-        implementation "io.micrometer:context-propagation:${contextPropagationVersion}"
         testImplementation 'io.projectreactor.tools:blockhound-junit-platform:1.0.13.RELEASE'
 
         testImplementation 'io.projectreactor:reactor-test'
@@ -90,22 +89,24 @@ jacoco {
 
 tasks.register('jacocoMergedReport', JacocoReport) {
     dependsOn = [test, subprojects.jacocoTestReport, pitestReportAggregate]
-    additionalSourceDirs.setFrom files(subprojects.sourceSets.main.allSource.srcDirs)
-    sourceDirectories.setFrom files(subprojects.sourceSets.main.allSource.srcDirs)
-    classDirectories.setFrom files(subprojects.sourceSets.main.output)
+
+    def domainProjects = subprojects.findAll {
+        it.name in ['model', 'usecase']
+    }
+
+    additionalSourceDirs.setFrom files(domainProjects.sourceSets.main.allSource.srcDirs)
+    sourceDirectories.setFrom files(domainProjects.sourceSets.main.allSource.srcDirs)
+    classDirectories.setFrom files(domainProjects.sourceSets.main.output)
+
     executionData.setFrom project.fileTree(dir: '.', include: '**/build/jacoco/test.exec')
+
     reports {
-        xml.setRequired true
-        csv.setRequired false
-        html.setRequired true
+        xml.required = true
+        html.required = true
+        csv.required = false
     }
 }
 
-tasks.withType(JavaCompile).configureEach {
-    options.compilerArgs = [
-            '-Amapstruct.suppressGeneratorTimestamp=true'
-    ]
-}
 
 pitestReportAggregate {
     doLast {

@@ -1,4 +1,4 @@
-package co.com.crediya.config.mdc;
+package co.com.crediya.logging;
 
 import io.micrometer.context.ContextRegistry;
 import jakarta.annotation.PostConstruct;

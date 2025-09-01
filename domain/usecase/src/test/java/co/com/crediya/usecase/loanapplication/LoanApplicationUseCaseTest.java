@@ -1,8 +1,12 @@
 package co.com.crediya.usecase.loanapplication;
 
+import co.com.crediya.model.auth.RoleAuth;
+import co.com.crediya.model.auth.UserAuth;
+import co.com.crediya.model.auth.gateways.AuthService;
 import co.com.crediya.model.loanapplication.LoanApplication;
 import co.com.crediya.model.loanapplication.exceptions.CustomerNotFoundException;
 import co.com.crediya.model.loanapplication.exceptions.LoanApplicationAmountOutOfRangeException;
+import co.com.crediya.model.loanapplication.exceptions.UnauthorizedLoanApplicationException;
 import co.com.crediya.model.loanapplication.gateways.LoanApplicationRepository;
 import co.com.crediya.model.loanapplication.gateways.UserService;
 import co.com.crediya.model.loanapplicationstate.LoanApplicationState;
@@ -38,12 +42,16 @@ class LoanApplicationUseCaseTest {
     @Mock
     private UserService userService;
 
+    @Mock
+    private AuthService authService;
+
     @InjectMocks
     private LoanApplicationUseCase useCase;
 
     private LoanApplication application;
     private LoanApplicationType loanType;
     private LoanApplicationState state;
+    private UserAuth currentUser;
 
     @BeforeEach
     void setUp() {
@@ -67,10 +75,13 @@ class LoanApplicationUseCaseTest {
                 .amount(1_000_000.0)
                 .type(LoanApplicationType.builder().id(1L).build())
                 .build();
+
+        currentUser = new UserAuth(3L, "test@example.com", "12345", new RoleAuth(2L, "SOLICITANTE"));
     }
 
     @Test
     void shouldCreateLoanApplicationWhenAllValidationsPass() {
+        when(authService.getCurrentUser()).thenReturn(Mono.just(currentUser));
         when(userService.existsByIdentityNumber("12345")).thenReturn(Mono.just(true));
         when(loanApplicationTypeRepository.findById(1L)).thenReturn(Mono.just(loanType));
         when(loanApplicationStateRepository.findByName(LoanApplicationStateConstant.PENDING_REVIEW.getName()))
@@ -86,6 +97,7 @@ class LoanApplicationUseCaseTest {
                 )
                 .verifyComplete();
 
+        verify(authService).getCurrentUser();
         verify(userService).existsByIdentityNumber("12345");
         verify(loanApplicationTypeRepository).findById(1L);
         verify(loanApplicationStateRepository).findByName(LoanApplicationStateConstant.PENDING_REVIEW.getName());
@@ -94,6 +106,7 @@ class LoanApplicationUseCaseTest {
 
     @Test
     void shouldThrowExceptionWhenCustomerNotFound() {
+        when(authService.getCurrentUser()).thenReturn(Mono.just(currentUser));
         when(userService.existsByIdentityNumber("12345")).thenReturn(Mono.just(false));
 
         Mono<LoanApplication> result = useCase.createLoanApplication(application);
@@ -102,12 +115,14 @@ class LoanApplicationUseCaseTest {
                 .expectError(CustomerNotFoundException.class)
                 .verify();
 
+        verify(authService).getCurrentUser();
         verify(userService).existsByIdentityNumber("12345");
         verifyNoInteractions(loanApplicationTypeRepository);
     }
 
     @Test
     void shouldThrowExceptionWhenTypeNotFound() {
+        when(authService.getCurrentUser()).thenReturn(Mono.just(currentUser));
         when(userService.existsByIdentityNumber("12345")).thenReturn(Mono.just(true));
         when(loanApplicationTypeRepository.findById(1L)).thenReturn(Mono.empty());
 
@@ -117,12 +132,14 @@ class LoanApplicationUseCaseTest {
                 .expectError(LoanApplicationTypeNotFoundException.class)
                 .verify();
 
+        verify(authService).getCurrentUser();
         verify(loanApplicationTypeRepository).findById(1L);
         verifyNoInteractions(loanApplicationRepository);
     }
 
     @Test
     void shouldThrowExceptionWhenStateNotFound() {
+        when(authService.getCurrentUser()).thenReturn(Mono.just(currentUser));
         when(userService.existsByIdentityNumber("12345")).thenReturn(Mono.just(true));
         when(loanApplicationTypeRepository.findById(1L)).thenReturn(Mono.just(loanType));
         when(loanApplicationStateRepository.findByName(LoanApplicationStateConstant.PENDING_REVIEW.getName()))
@@ -134,6 +151,7 @@ class LoanApplicationUseCaseTest {
                 .expectError(LoanApplicationStateNotFoundException.class)
                 .verify();
 
+        verify(authService).getCurrentUser();
         verify(loanApplicationStateRepository).findByName(LoanApplicationStateConstant.PENDING_REVIEW.getName());
         verifyNoInteractions(loanApplicationRepository);
     }
@@ -142,6 +160,7 @@ class LoanApplicationUseCaseTest {
     void shouldThrowExceptionWhenAmountIsOutOfRange() {
         application.setAmount(100.0);
 
+        when(authService.getCurrentUser()).thenReturn(Mono.just(currentUser));
         when(userService.existsByIdentityNumber("12345")).thenReturn(Mono.just(true));
         when(loanApplicationTypeRepository.findById(1L)).thenReturn(Mono.just(loanType));
 
@@ -151,6 +170,7 @@ class LoanApplicationUseCaseTest {
                 .expectError(LoanApplicationAmountOutOfRangeException.class)
                 .verify();
 
+        verify(authService).getCurrentUser();
         verify(loanApplicationTypeRepository).findById(1L);
         verifyNoInteractions(loanApplicationStateRepository);
         verifyNoInteractions(loanApplicationRepository);
@@ -159,6 +179,8 @@ class LoanApplicationUseCaseTest {
     @Test
     void shouldThrowExceptionWhenAmountExceedsMax() {
         application.setAmount((double) (loanType.getMaxAmount() + 1));
+
+        when(authService.getCurrentUser()).thenReturn(Mono.just(currentUser));
         when(userService.existsByIdentityNumber("12345")).thenReturn(Mono.just(true));
         when(loanApplicationTypeRepository.findById(1L)).thenReturn(Mono.just(loanType));
 
@@ -168,6 +190,7 @@ class LoanApplicationUseCaseTest {
                 .expectError(LoanApplicationAmountOutOfRangeException.class)
                 .verify();
 
+        verify(authService).getCurrentUser();
         verify(loanApplicationTypeRepository).findById(1L);
         verifyNoInteractions(loanApplicationStateRepository);
         verifyNoInteractions(loanApplicationRepository);
@@ -177,10 +200,10 @@ class LoanApplicationUseCaseTest {
     void shouldCreateLoanApplicationWithManualReviewWhenAutoValidationIsFalse() {
         LoanApplicationType manualType = LoanApplicationType.builder()
                 .id(2L)
-                .name(LoanApplicationTypeConstant.LIBRE_INVERSION.getName()) // este tiene autoValidation=false
+                .name(LoanApplicationTypeConstant.LIBRE_INVERSION.getName())
                 .minAmount(LoanApplicationTypeConstant.LIBRE_INVERSION.getMinAmount())
                 .maxAmount(LoanApplicationTypeConstant.LIBRE_INVERSION.getMaxAmount())
-                .autoValidation(false) // 👈 clave
+                .autoValidation(false)
                 .build();
 
         LoanApplicationState manualState = LoanApplicationState.builder()
@@ -192,6 +215,7 @@ class LoanApplicationUseCaseTest {
         application.setAmount(2_000_000.0);
         application.setType(LoanApplicationType.builder().id(2L).build());
 
+        when(authService.getCurrentUser()).thenReturn(Mono.just(currentUser));
         when(userService.existsByIdentityNumber("12345")).thenReturn(Mono.just(true));
         when(loanApplicationTypeRepository.findById(2L)).thenReturn(Mono.just(manualType));
         when(loanApplicationStateRepository.findByName(LoanApplicationStateConstant.MANUAL_REVIEW.getName()))
@@ -207,9 +231,26 @@ class LoanApplicationUseCaseTest {
                 )
                 .verifyComplete();
 
+        verify(authService).getCurrentUser();
         verify(userService).existsByIdentityNumber("12345");
         verify(loanApplicationTypeRepository).findById(2L);
         verify(loanApplicationStateRepository).findByName(LoanApplicationStateConstant.MANUAL_REVIEW.getName());
         verify(loanApplicationRepository).save(any());
+    }
+    @Test
+    void shouldThrowExceptionWhenIdentityNumberDoesNotMatchCurrentUser() {
+        UserAuth anotherUser = new UserAuth(4L, "other@example.com", "99999", new RoleAuth(2L, "SOLICITANTE"));
+        when(authService.getCurrentUser()).thenReturn(Mono.just(anotherUser));
+        when(userService.existsByIdentityNumber(anyString())).thenReturn(Mono.just(true));
+
+        Mono<LoanApplication> result = useCase.createLoanApplication(application);
+
+        StepVerifier.create(result)
+                .expectError(UnauthorizedLoanApplicationException.class)
+                .verify();
+
+        verify(authService).getCurrentUser();
+        verifyNoInteractions(loanApplicationTypeRepository);
+        verifyNoInteractions(loanApplicationRepository);
     }
 }

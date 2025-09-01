@@ -1,8 +1,10 @@
 package co.com.crediya.usecase.loanapplication;
 
+import co.com.crediya.model.auth.gateways.AuthService;
 import co.com.crediya.model.loanapplication.LoanApplication;
 import co.com.crediya.model.loanapplication.exceptions.CustomerNotFoundException;
 import co.com.crediya.model.loanapplication.exceptions.LoanApplicationAmountOutOfRangeException;
+import co.com.crediya.model.loanapplication.exceptions.UnauthorizedLoanApplicationException;
 import co.com.crediya.model.loanapplication.gateways.LoanApplicationRepository;
 import co.com.crediya.model.loanapplication.gateways.UserService;
 import co.com.crediya.model.loanapplicationstate.LoanApplicationState;
@@ -23,9 +25,11 @@ public class LoanApplicationUseCase {
     private final LoanApplicationTypeRepository loanApplicationTypeRepository;
     private final LoanApplicationStateRepository loanApplicationStateRepository;
     private final UserService userService;
+    private final AuthService authService;
 
     public Mono<LoanApplication> createLoanApplication(LoanApplication application) {
-        return validateUser(application.getCustomerIdentityNumber())
+        return validateOwnership(application.getCustomerIdentityNumber())
+                .then(validateUser(application.getCustomerIdentityNumber()))
                 .then(Mono.defer(() -> validateType(application.getType().getId())
                         .doOnNext(type -> validateAmount(application.getAmount(), type))
                         .flatMap(type -> validateInitialState(type)
@@ -40,10 +44,23 @@ public class LoanApplicationUseCase {
                 });
     }
 
+
+    private Mono<Void> validateOwnership(String identityNumber) {
+        return authService.getCurrentUser()
+                .flatMap(userAuth -> {
+                    if (!userAuth.identityNumber().equals(identityNumber)) {
+                        return Mono.error(new UnauthorizedLoanApplicationException());
+                    }
+                    return Mono.empty();
+                });
+    }
+
     private Mono<Void> validateUser(String identityNumber) {
         return userService.existsByIdentityNumber(identityNumber)
-                .flatMap(exists -> exists ? Mono.empty() : Mono.error(new CustomerNotFoundException(identityNumber)));
-        }
+                .flatMap(exists -> exists
+                        ? Mono.empty()
+                        : Mono.error(new CustomerNotFoundException(identityNumber)));
+    }
 
     private Mono<LoanApplicationType> validateType(Long typeId) {
         return loanApplicationTypeRepository.findById(typeId)

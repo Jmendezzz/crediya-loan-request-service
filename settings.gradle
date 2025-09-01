@@ -26,3 +26,9 @@ include ':web-client'
 project(':web-client').projectDir = file('./infrastructure/driven-adapters/web-client')
 include ':reactive-web'
 project(':reactive-web').projectDir = file('./infrastructure/entry-points/reactive-web')
+include ':logging'
+project(':logging').projectDir = file('./infrastructure/helpers/logging')
+include ':jwt'
+project(':jwt').projectDir = file('./infrastructure/driven-adapters/jwt')
+include ':auth-context'
+project(':auth-context').projectDir = file('./infrastructure/driven-adapters/auth-context')
