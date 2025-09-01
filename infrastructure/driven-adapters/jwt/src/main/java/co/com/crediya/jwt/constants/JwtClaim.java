@@ -7,7 +7,8 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public enum JwtClaim {
 
-    ROLE("role");
+    ROLE("role"),
+    USER_ID("userId");
 
     private final String claim;
 
