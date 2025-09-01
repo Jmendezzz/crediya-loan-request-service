@@ -1,5 +1,6 @@
 package co.com.crediya.config;
 
+import co.com.crediya.model.auth.gateways.AuthService;
 import co.com.crediya.model.loanapplication.gateways.LoanApplicationRepository;
 import co.com.crediya.model.loanapplication.gateways.UserService;
 import co.com.crediya.model.loanapplicationstate.gateways.LoanApplicationStateRepository;
@@ -23,13 +24,15 @@ public class UseCasesConfig {
                 LoanApplicationRepository loanApplicationRepository,
                 LoanApplicationTypeRepository loanApplicationTypeRepository,
                 LoanApplicationStateRepository loanApplicationStateRepository,
-                UserService userService
+                UserService userService,
+                AuthService authService
                 ){
                 return new LoanApplicationUseCase(
                         loanApplicationRepository,
                         loanApplicationTypeRepository,
                         loanApplicationStateRepository,
-                        userService
+                        userService,
+                        authService
                 );
         }
 }
