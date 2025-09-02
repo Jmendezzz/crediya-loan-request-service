@@ -1,5 +1,6 @@
 package co.com.crediya.api.security.config;
 
+import co.com.crediya.api.constant.OpenApiEndpoint;
 import co.com.crediya.api.rest.loanapplication.constant.LoanApplicationEndpoint;
 import co.com.crediya.api.security.handler.AuthenticationHandler;
 import co.com.crediya.api.security.handler.AuthorizationHandler;
@@ -29,14 +30,22 @@ public class SecurityConfig {
                 .httpBasic(ServerHttpSecurity.HttpBasicSpec::disable)
                 .formLogin(ServerHttpSecurity.FormLoginSpec::disable)
                 .authorizeExchange(exchanges -> exchanges
+                        .pathMatchers(
+                                OpenApiEndpoint.API_DOCS.getPath(),
+                                OpenApiEndpoint.SWAGGER_UI.getPath(),
+                                OpenApiEndpoint.SWAGGER_UI_RESOURCES.getPath(),
+                                OpenApiEndpoint.WEB_JARS.getPath()
+                        ).permitAll()
                         .pathMatchers(LoanApplicationEndpoint.CREATE_LOAN_APPLICATION.getPath())
                         .hasRole(RoleConstant.APPLICANT.getName())
+                        .pathMatchers(LoanApplicationEndpoint.GET_LOAN_APPLICATIONS.getPath())
+                        .hasRole(RoleConstant.ADMINISTRATOR.getName())
                         .anyExchange().authenticated()
                 )
                 .exceptionHandling(exceptions ->
-                    exceptions
-                            .accessDeniedHandler(authorizationHandler)
-                            .authenticationEntryPoint(authenticationHandler)
+                        exceptions
+                                .accessDeniedHandler(authorizationHandler)
+                                .authenticationEntryPoint(authenticationHandler)
                 )
                 .addFilterAt(jwtAuthenticationWebFilter, SecurityWebFiltersOrder.AUTHENTICATION)
                 .build();

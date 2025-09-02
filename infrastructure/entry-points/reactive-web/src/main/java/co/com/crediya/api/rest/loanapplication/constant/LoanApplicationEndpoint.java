@@ -11,6 +11,12 @@ public enum LoanApplicationEndpoint {
             "createLoanApplication",
             "Crear solicitud de prestamo",
             "Registra una nueva solicitud de prestamo en el sistema"
+    ),
+    GET_LOAN_APPLICATIONS(
+            "",
+            "getLoanApplications",
+            "Obtener y filtrar solicitudes de prestamo",
+            "Obtener y filtrar solicitudes de prestamo por parte de un admin / asesor"
     );
 
     private final String path;

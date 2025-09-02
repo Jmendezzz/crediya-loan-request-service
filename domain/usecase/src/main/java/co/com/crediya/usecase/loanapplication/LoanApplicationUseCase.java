@@ -1,7 +1,11 @@
 package co.com.crediya.usecase.loanapplication;
 
 import co.com.crediya.model.auth.gateways.AuthService;
+import co.com.crediya.model.common.exceptions.PageQuery;
+import co.com.crediya.model.common.exceptions.PagedQuery;
+import co.com.crediya.model.common.exceptions.Paginated;
 import co.com.crediya.model.loanapplication.LoanApplication;
+import co.com.crediya.model.loanapplication.LoanApplicationQuery;
 import co.com.crediya.model.loanapplication.exceptions.CustomerNotFoundException;
 import co.com.crediya.model.loanapplication.exceptions.LoanApplicationAmountOutOfRangeException;
 import co.com.crediya.model.loanapplication.exceptions.UnauthorizedLoanApplicationException;
@@ -84,5 +88,9 @@ public class LoanApplicationUseCase {
 
         return loanApplicationStateRepository.findByName(stateName)
                 .switchIfEmpty(Mono.error(new LoanApplicationStateNotFoundException()));
+    }
+
+    public Mono<Paginated<LoanApplication>> getLoanApplications(PagedQuery<LoanApplicationQuery> query){
+        return loanApplicationRepository.findByCriteria(query);
     }
 }

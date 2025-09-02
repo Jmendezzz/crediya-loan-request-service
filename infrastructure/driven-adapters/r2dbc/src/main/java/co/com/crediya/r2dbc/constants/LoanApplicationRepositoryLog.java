@@ -11,7 +11,11 @@ public enum LoanApplicationRepositoryLog {
 
     ENRICH_START("Enriching LoanApplicationEntity with relations. EntityId={}"),
     ENRICH_SUCCESS("LoanApplicationEntity {} enriched successfully"),
-    ENRICH_ERROR("Error enriching LoanApplicationEntity {}: {}");
+    ENRICH_ERROR("Error enriching LoanApplicationEntity {}: {}"),
+
+    FIND_CRITERIA_START("Finding LoanApplications by criteria={}"),
+    FIND_CRITERIA_SUCCESS("Found {} LoanApplications by criteria={}"),
+    FIND_CRITERIA_ERROR("Error finding LoanApplications by criteria={}, cause={}");
 
     private final String message;
 

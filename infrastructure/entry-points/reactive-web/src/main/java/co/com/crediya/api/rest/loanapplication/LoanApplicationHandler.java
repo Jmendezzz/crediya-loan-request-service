@@ -1,7 +1,10 @@
 package co.com.crediya.api.rest.loanapplication;
 
+import co.com.crediya.api.dto.PageRequestDto;
+import co.com.crediya.api.dto.PaginatedResponseDto;
 import co.com.crediya.api.rest.loanapplication.constant.LoanApplicationHandlerLog;
 import co.com.crediya.api.rest.loanapplication.dto.CreateLoanApplicationRequestDto;
+import co.com.crediya.api.rest.loanapplication.dto.LoanApplicationFilterRequestDto;
 import co.com.crediya.api.rest.loanapplication.dto.LoanApplicationResponseDto;
 import co.com.crediya.api.rest.loanapplication.mapper.LoanApplicationRequestMapper;
 import co.com.crediya.api.rest.loanapplication.mapper.LoanApplicationResponseMapper;
@@ -31,5 +34,23 @@ public class LoanApplicationHandler {
                 .doOnSuccess(app -> log.info(LoanApplicationHandlerLog.CREATE_SUCCESS.getMessage(), app.getId()))
                 .doOnError(error -> log.error(LoanApplicationHandlerLog.CREATE_ERROR.getMessage(), error.getMessage(), error))
                 .map(responseMapper::toDto);
+    }
+
+    public Mono<PaginatedResponseDto<LoanApplicationResponseDto>> getLoanApplications(
+            LoanApplicationFilterRequestDto filterDto,
+            PageRequestDto pageRequestDto
+    ) {
+        return validator.validate(filterDto)
+                .then(validator.validate(pageRequestDto))
+                .doOnSubscribe(s -> log.info(
+                        LoanApplicationHandlerLog.GET_START.getMessage(), filterDto, pageRequestDto))
+                .flatMap(v -> loanApplicationUseCase.getLoanApplications(
+                                requestMapper.toPagedQuery(filterDto, pageRequestDto))
+                        .map(responseMapper::toDtoPage)
+                        .doOnSuccess(res -> log.info(
+                                LoanApplicationHandlerLog.GET_SUCCESS.getMessage(), res.items().size()))
+                        .doOnError(e -> log.error(
+                                LoanApplicationHandlerLog.GET_ERROR.getMessage(), e.getMessage(), e))
+                );
     }
 }
