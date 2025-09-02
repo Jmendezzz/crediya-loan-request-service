@@ -3,7 +3,11 @@ package co.com.crediya.usecase.loanapplication;
 import co.com.crediya.model.auth.RoleAuth;
 import co.com.crediya.model.auth.UserAuth;
 import co.com.crediya.model.auth.gateways.AuthService;
+import co.com.crediya.model.common.exceptions.PageQuery;
+import co.com.crediya.model.common.exceptions.PagedQuery;
+import co.com.crediya.model.common.exceptions.Paginated;
 import co.com.crediya.model.loanapplication.LoanApplication;
+import co.com.crediya.model.loanapplication.LoanApplicationQuery;
 import co.com.crediya.model.loanapplication.exceptions.CustomerNotFoundException;
 import co.com.crediya.model.loanapplication.exceptions.LoanApplicationAmountOutOfRangeException;
 import co.com.crediya.model.loanapplication.exceptions.UnauthorizedLoanApplicationException;
@@ -24,6 +28,9 @@ import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
+
+import java.util.List;
+import java.util.Optional;
 
 import static org.mockito.Mockito.*;
 
@@ -252,5 +259,73 @@ class LoanApplicationUseCaseTest {
         verify(authService).getCurrentUser();
         verifyNoInteractions(loanApplicationTypeRepository);
         verifyNoInteractions(loanApplicationRepository);
+    }
+
+    @Test
+    void shouldReturnPaginatedLoanApplicationsWhenRepositorySucceeds() {
+        LoanApplicationQuery filter = new LoanApplicationQuery(
+                Optional.of("12345"),
+                Optional.of(1_000_000.0),
+                Optional.of(12),
+                Optional.of(1L),
+                Optional.of(1L)
+        );
+        PageQuery pageQuery = new PageQuery(0, 10);
+        PagedQuery<LoanApplicationQuery> pagedQuery = new PagedQuery<>(filter, pageQuery);
+
+        LoanApplication loanApp = LoanApplication.builder()
+                .id(1L)
+                .customerIdentityNumber("12345")
+                .amount(1_000_000.0)
+                .termInMonths(12)
+                .build();
+
+        Paginated<LoanApplication> paginated = new Paginated<>(
+                List.of(loanApp),
+                1L,
+                0,
+                10
+        );
+
+        when(loanApplicationRepository.findByCriteria(pagedQuery)).thenReturn(Mono.just(paginated));
+
+        Mono<Paginated<LoanApplication>> result = useCase.getLoanApplications(pagedQuery);
+
+        StepVerifier.create(result)
+                .expectNextMatches(res ->
+                        res.items().size() == 1 &&
+                                res.items().get(0).getCustomerIdentityNumber().equals("12345") &&
+                                res.totalItems() == 1L &&
+                                res.page() == 0 &&
+                                res.size() == 10
+                )
+                .verifyComplete();
+
+        verify(loanApplicationRepository).findByCriteria(pagedQuery);
+    }
+
+    @Test
+    void shouldPropagateErrorWhenRepositoryFails() {
+        LoanApplicationQuery filter = new LoanApplicationQuery(
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty()
+        );
+        PageQuery pageQuery = new PageQuery(0, 5);
+        PagedQuery<LoanApplicationQuery> pagedQuery = new PagedQuery<>(filter, pageQuery);
+
+        RuntimeException repositoryError = new RuntimeException("Database failure");
+        when(loanApplicationRepository.findByCriteria(pagedQuery)).thenReturn(Mono.error(repositoryError));
+
+        Mono<Paginated<LoanApplication>> result = useCase.getLoanApplications(pagedQuery);
+
+        StepVerifier.create(result)
+                .expectErrorMatches(ex -> ex instanceof RuntimeException &&
+                        ex.getMessage().equals("Database failure"))
+                .verify();
+
+        verify(loanApplicationRepository).findByCriteria(pagedQuery);
     }
 }
