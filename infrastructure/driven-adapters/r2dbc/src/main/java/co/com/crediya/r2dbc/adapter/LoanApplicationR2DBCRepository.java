@@ -1,9 +1,15 @@
 package co.com.crediya.r2dbc.adapter;
 
+import co.com.crediya.model.common.exceptions.PageQuery;
+import co.com.crediya.model.common.exceptions.PagedQuery;
+import co.com.crediya.model.common.exceptions.Paginated;
 import co.com.crediya.model.loanapplication.LoanApplication;
+import co.com.crediya.model.loanapplication.LoanApplicationQuery;
 import co.com.crediya.model.loanapplication.gateways.LoanApplicationRepository;
 import co.com.crediya.r2dbc.constants.LoanApplicationRepositoryLog;
 import co.com.crediya.r2dbc.entity.LoanApplicationEntity;
+import co.com.crediya.r2dbc.filter.CriteriaBuilder;
+import co.com.crediya.r2dbc.filter.loanapplication.LoanApplicationQueryScenario;
 import co.com.crediya.r2dbc.mapper.LoanApplicationEntityMapper;
 import co.com.crediya.r2dbc.mapper.LoanApplicationStateEntityMapper;
 import co.com.crediya.r2dbc.mapper.LoanApplicationTypeEntityMapper;
@@ -12,8 +18,12 @@ import co.com.crediya.r2dbc.repository.LoanApplicationStateReactiveRepository;
 import co.com.crediya.r2dbc.repository.LoanApplicationTypeReactiveRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.r2dbc.core.R2dbcEntityTemplate;
+import org.springframework.data.relational.core.query.Criteria;
+import org.springframework.data.relational.core.query.Query;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.reactive.TransactionalOperator;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @Slf4j
@@ -30,6 +40,8 @@ public class LoanApplicationR2DBCRepository implements LoanApplicationRepository
     private final LoanApplicationTypeEntityMapper loanApplicationTypeEntityMapper;
     private final LoanApplicationStateEntityMapper loanApplicationStateEntityMapper;
 
+    private final R2dbcEntityTemplate template;
+
     @Override
     public Mono<LoanApplication> save(LoanApplication loanApplication) {
         log.info(LoanApplicationRepositoryLog.SAVE_START.getMessage(), loanApplication.getCustomerIdentityNumber());
@@ -42,6 +54,38 @@ public class LoanApplicationR2DBCRepository implements LoanApplicationRepository
         );
     }
 
+    @Override
+    public Mono<Paginated<LoanApplication>> findByCriteria(PagedQuery<LoanApplicationQuery> query) {
+        log.info(LoanApplicationRepositoryLog.FIND_CRITERIA_START.getMessage(), query);
+
+        LoanApplicationQuery filters = query.filters();
+        PageQuery page = query.page();
+
+        LoanApplicationQueryScenario scenario = LoanApplicationQueryScenario.GENERAL;
+
+        CriteriaBuilder builder = CriteriaBuilder.create();
+        scenario.getFilters().forEach(filterType -> filterType.getStrategy().apply(filters, builder));
+
+        Criteria criteria = builder.build();
+
+        Query queryBuilder = Query.query(criteria)
+                .limit(page.size())
+                .offset((long) page.page() * page.size());
+
+        Flux<LoanApplicationEntity> entities = template.select(queryBuilder, LoanApplicationEntity.class);
+        Mono<Long> totalCount = template.count(Query.query(criteria), LoanApplicationEntity.class);
+
+        return Mono.zip(entities.flatMap(this::enrichWithRelations).collectList(), totalCount)
+                .map(tuple -> new Paginated<>(tuple.getT1(), tuple.getT2(), page.page(), page.size()))
+                .doOnSuccess(result -> log.info(
+                        LoanApplicationRepositoryLog.FIND_CRITERIA_SUCCESS.getMessage(),
+                        result.size(), query
+                ))
+                .doOnError(error -> log.error(
+                        LoanApplicationRepositoryLog.FIND_CRITERIA_ERROR.getMessage(),
+                        query, error.getMessage(), error
+                ));
+    }
     private Mono<LoanApplication> enrichWithRelations(LoanApplicationEntity loanApplication) {
         log.debug(LoanApplicationRepositoryLog.ENRICH_START.getMessage(), loanApplication.getId());
 
