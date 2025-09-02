@@ -19,7 +19,7 @@ database:
   name: "${LOAN_REQUEST_SERVICE_DB_NAME}"
 services:
   user:
-    base-url: "http://localhost:8080"
+    base-url: "${AUTH_SERVICE_BASE_URL}"
 management:
   endpoints:
     web:
