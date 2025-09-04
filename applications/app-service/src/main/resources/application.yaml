@@ -38,4 +38,4 @@ adapter:
   sqs:
     region: "us-east-1"
     queues:
-      loanApplicationStateChanged: "https://sqs.us-east-1.amazonaws.com/739275451744/loan-application-state-changed"
+      loanApplicationStateChanged: ${LOAN_APPLICATION_STATUS_CHANGED_QUEUE}
