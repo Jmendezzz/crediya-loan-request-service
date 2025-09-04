@@ -1,4 +1,4 @@
-package co.com.crediya.model.loanapplication;
+package co.com.crediya.model.loanapplication.queries;
 
 import java.util.Optional;
 
