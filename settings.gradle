@@ -32,3 +32,7 @@ include ':jwt'
 project(':jwt').projectDir = file('./infrastructure/driven-adapters/jwt')
 include ':auth-context'
 project(':auth-context').projectDir = file('./infrastructure/driven-adapters/auth-context')
+include ':metrics'
+project(':metrics').projectDir = file('./infrastructure/helpers/metrics')
+include ':sqs-sender'
+project(':sqs-sender').projectDir = file('./infrastructure/driven-adapters/sqs-sender')

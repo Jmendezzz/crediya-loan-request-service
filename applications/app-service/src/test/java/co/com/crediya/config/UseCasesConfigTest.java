@@ -1,8 +1,9 @@
 package co.com.crediya.config;
 
 import co.com.crediya.model.auth.gateways.AuthService;
+import co.com.crediya.model.loanapplication.gateways.LoanApplicationEventPublisher;
 import co.com.crediya.model.loanapplication.gateways.LoanApplicationRepository;
-import co.com.crediya.model.loanapplication.gateways.UserService;
+import co.com.crediya.model.user.gateways.UserService;
 import co.com.crediya.model.loanapplicationstate.gateways.LoanApplicationStateRepository;
 import co.com.crediya.model.loanapplicationtype.gateways.LoanApplicationTypeRepository;
 import co.com.crediya.usecase.loanapplication.LoanApplicationUseCase;
@@ -20,6 +21,7 @@ class UseCasesConfigTest {
         LoanApplicationStateRepository loanApplicationStateRepository = mock(LoanApplicationStateRepository.class);
         AuthService authService = mock(AuthService.class);
         UserService userService = mock(UserService.class);
+        LoanApplicationEventPublisher loanApplicationEventPublisher = mock(LoanApplicationEventPublisher.class);
 
         UseCasesConfig config = new UseCasesConfig();
         LoanApplicationUseCase useCase = config.loanApplicationUseCase(
@@ -27,7 +29,8 @@ class UseCasesConfigTest {
                 loanApplicationTypeRepository,
                 loanApplicationStateRepository,
                 userService,
-                authService
+                authService,
+                loanApplicationEventPublisher
         );
 
         assertThat(useCase).isNotNull();
