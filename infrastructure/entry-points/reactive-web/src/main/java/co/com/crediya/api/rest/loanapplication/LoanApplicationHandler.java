@@ -6,9 +6,11 @@ import co.com.crediya.api.rest.loanapplication.constant.LoanApplicationHandlerLo
 import co.com.crediya.api.rest.loanapplication.dto.CreateLoanApplicationRequestDto;
 import co.com.crediya.api.rest.loanapplication.dto.LoanApplicationFilterRequestDto;
 import co.com.crediya.api.rest.loanapplication.dto.LoanApplicationResponseDto;
+import co.com.crediya.api.rest.loanapplication.dto.UpdateLoanApplicationStateRequestDto;
 import co.com.crediya.api.rest.loanapplication.mapper.LoanApplicationRequestMapper;
 import co.com.crediya.api.rest.loanapplication.mapper.LoanApplicationResponseMapper;
 import co.com.crediya.api.utils.ObjectValidator;
+import co.com.crediya.model.loanapplication.commands.UpdateLoanApplicationStateCommand;
 import co.com.crediya.usecase.loanapplication.LoanApplicationUseCase;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -52,5 +54,25 @@ public class LoanApplicationHandler {
                         .doOnError(e -> log.error(
                                 LoanApplicationHandlerLog.GET_ERROR.getMessage(), e.getMessage(), e))
                 );
+    }
+    public Mono<LoanApplicationResponseDto> updateLoanApplicationState(
+            Long loanApplicationId,
+            UpdateLoanApplicationStateRequestDto dto
+    ) {
+        return validator.validate(dto)
+                .doOnSubscribe(s -> log.info(
+                        LoanApplicationHandlerLog.UPDATE_STATE_START.getMessage(), loanApplicationId, dto))
+                .flatMap(v -> {
+                    UpdateLoanApplicationStateCommand command =
+                            new UpdateLoanApplicationStateCommand(loanApplicationId, dto.stateId());
+
+                    return loanApplicationUseCase.updateLoanApplicationState(command)
+                            .doOnSuccess(app -> log.info(
+                                    LoanApplicationHandlerLog.UPDATE_STATE_SUCCESS.getMessage(), loanApplicationId))
+                            .doOnError(error -> log.error(
+                                    LoanApplicationHandlerLog.UPDATE_STATE_ERROR.getMessage(),
+                                    loanApplicationId, error.getMessage(), error))
+                            .map(responseMapper::toDto);
+                });
     }
 }

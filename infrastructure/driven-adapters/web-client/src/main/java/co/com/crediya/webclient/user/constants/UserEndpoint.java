@@ -7,7 +7,8 @@ import lombok.RequiredArgsConstructor;
 @Getter
 public enum UserEndpoint {
 
-    VALIDATE_USER_EXISTENCE_BY_IDENTITY_NUMBER("api/v1/users/{identityNumber}/exists");
+    VALIDATE_USER_EXISTENCE_BY_IDENTITY_NUMBER("api/v1/users/{identityNumber}/exists"),
+    GET_BY_IDENTITY_NUMBER("api/v1/users/{identityNumber}");
 
     private final String endpoint;
 }

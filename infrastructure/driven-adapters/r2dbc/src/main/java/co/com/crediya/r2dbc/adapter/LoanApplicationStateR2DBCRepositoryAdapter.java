@@ -27,4 +27,11 @@ public class LoanApplicationStateR2DBCRepositoryAdapter implements LoanApplicati
                 .findByName(name)
                 .map(loanApplicationStateEntityMapper::toDomain);
     }
+
+    @Override
+    public Mono<LoanApplicationState> findById(Long id) {
+        return loanApplicationStateReactiveRepository
+                .findById(id)
+                .map(loanApplicationStateEntityMapper::toDomain);
+    }
 }

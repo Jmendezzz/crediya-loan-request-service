@@ -1,16 +1,20 @@
 package co.com.crediya.usecase.loanapplication;
 
 import co.com.crediya.model.auth.gateways.AuthService;
-import co.com.crediya.model.common.exceptions.PageQuery;
-import co.com.crediya.model.common.exceptions.PagedQuery;
-import co.com.crediya.model.common.exceptions.Paginated;
+import co.com.crediya.model.common.queries.PagedQuery;
+import co.com.crediya.model.common.results.Paginated;
 import co.com.crediya.model.loanapplication.LoanApplication;
-import co.com.crediya.model.loanapplication.LoanApplicationQuery;
+import co.com.crediya.model.loanapplication.commands.UpdateLoanApplicationStateCommand;
+import co.com.crediya.model.loanapplication.events.LoanApplicationStateChanged;
+import co.com.crediya.model.loanapplication.exceptions.LoanApplicationNotFoundException;
+import co.com.crediya.model.loanapplication.gateways.LoanApplicationEventPublisher;
+import co.com.crediya.model.loanapplication.queries.LoanApplicationQuery;
 import co.com.crediya.model.loanapplication.exceptions.CustomerNotFoundException;
 import co.com.crediya.model.loanapplication.exceptions.LoanApplicationAmountOutOfRangeException;
 import co.com.crediya.model.loanapplication.exceptions.UnauthorizedLoanApplicationException;
 import co.com.crediya.model.loanapplication.gateways.LoanApplicationRepository;
-import co.com.crediya.model.loanapplication.gateways.UserService;
+import co.com.crediya.model.user.User;
+import co.com.crediya.model.user.gateways.UserService;
 import co.com.crediya.model.loanapplicationstate.LoanApplicationState;
 import co.com.crediya.model.loanapplicationstate.constants.LoanApplicationStateConstant;
 import co.com.crediya.model.loanapplicationstate.exceptions.LoanApplicationStateNotFoundException;
@@ -20,6 +24,7 @@ import co.com.crediya.model.loanapplicationtype.exceptions.LoanApplicationTypeNo
 import co.com.crediya.model.loanapplicationtype.gateways.LoanApplicationTypeRepository;
 import lombok.RequiredArgsConstructor;
 import reactor.core.publisher.Mono;
+import reactor.util.function.Tuple2;
 import reactor.util.function.Tuples;
 
 @RequiredArgsConstructor
@@ -28,8 +33,11 @@ public class LoanApplicationUseCase {
     private final LoanApplicationRepository loanApplicationRepository;
     private final LoanApplicationTypeRepository loanApplicationTypeRepository;
     private final LoanApplicationStateRepository loanApplicationStateRepository;
+
     private final UserService userService;
     private final AuthService authService;
+
+    private final LoanApplicationEventPublisher loanApplicationEventPublisher;
 
     public Mono<LoanApplication> createLoanApplication(LoanApplication application) {
         return validateOwnership(application.getCustomerIdentityNumber())
@@ -93,4 +101,46 @@ public class LoanApplicationUseCase {
     public Mono<Paginated<LoanApplication>> getLoanApplications(PagedQuery<LoanApplicationQuery> query){
         return loanApplicationRepository.findByCriteria(query);
     }
+
+    public Mono<LoanApplication> updateLoanApplicationState(UpdateLoanApplicationStateCommand command) {
+        return findApplicationAndState(command)
+                .flatMap(this::enrichWithUser)
+                .flatMap(this::saveAndPublish);
+    }
+
+    private Mono<Tuple2<LoanApplication, LoanApplicationState>> findApplicationAndState(UpdateLoanApplicationStateCommand command) {
+        return loanApplicationRepository.findById(command.loanApplicationId())
+                .switchIfEmpty(Mono.error(new LoanApplicationNotFoundException()))
+                .zipWhen(app -> loanApplicationStateRepository.findById(command.stateId())
+                        .switchIfEmpty(Mono.error(new LoanApplicationStateNotFoundException())));
+    }
+
+    private Mono<Tuple2<LoanApplication, User>> enrichWithUser(Tuple2<LoanApplication, LoanApplicationState> tuple) {
+        LoanApplication app = tuple.getT1();
+        LoanApplicationState state = tuple.getT2();
+
+        app.setState(state);
+
+        return userService.getUserByIdentityNumber(app.getCustomerIdentityNumber())
+                .map(user -> Tuples.of(app, user));
+    }
+
+    private Mono<LoanApplication> saveAndPublish(Tuple2<LoanApplication, User> tuple) {
+        LoanApplication app = tuple.getT1();
+        User user = tuple.getT2();
+
+        LoanApplicationStateChanged event = LoanApplicationStateChanged.builder()
+                .loanApplicationId(app.getId())
+                .loanApplicationNewState(app.getState().getName())
+                .customerIdentityNumber(app.getCustomerIdentityNumber())
+                .customerEmail(user.email())
+                .customerFirstName(user.firstName())
+                .customerLastName(user.lastName())
+                .build();
+
+        return loanApplicationRepository.save(app)
+                .flatMap(saved -> loanApplicationEventPublisher.publish(event)
+                        .thenReturn(saved));
+    }
+
 }

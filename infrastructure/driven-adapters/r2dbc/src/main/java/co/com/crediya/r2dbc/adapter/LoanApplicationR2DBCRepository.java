@@ -1,10 +1,10 @@
 package co.com.crediya.r2dbc.adapter;
 
-import co.com.crediya.model.common.exceptions.PageQuery;
-import co.com.crediya.model.common.exceptions.PagedQuery;
-import co.com.crediya.model.common.exceptions.Paginated;
+import co.com.crediya.model.common.queries.PageQuery;
+import co.com.crediya.model.common.queries.PagedQuery;
+import co.com.crediya.model.common.results.Paginated;
 import co.com.crediya.model.loanapplication.LoanApplication;
-import co.com.crediya.model.loanapplication.LoanApplicationQuery;
+import co.com.crediya.model.loanapplication.queries.LoanApplicationQuery;
 import co.com.crediya.model.loanapplication.gateways.LoanApplicationRepository;
 import co.com.crediya.r2dbc.constants.LoanApplicationRepositoryLog;
 import co.com.crediya.r2dbc.entity.LoanApplicationEntity;
@@ -86,6 +86,14 @@ public class LoanApplicationR2DBCRepository implements LoanApplicationRepository
                         query, error.getMessage(), error
                 ));
     }
+
+    @Override
+    public Mono<LoanApplication> findById(Long id) {
+        return loanApplicationReactiveRepository
+                .findById(id)
+                .flatMap(this::enrichWithRelations);
+    }
+
     private Mono<LoanApplication> enrichWithRelations(LoanApplicationEntity loanApplication) {
         log.debug(LoanApplicationRepositoryLog.ENRICH_START.getMessage(), loanApplication.getId());
 

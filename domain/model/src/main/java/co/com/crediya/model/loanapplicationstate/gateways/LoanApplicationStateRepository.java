@@ -6,4 +6,5 @@ import reactor.core.publisher.Mono;
 public interface LoanApplicationStateRepository {
     Mono<LoanApplicationState> save(LoanApplicationState loanApplicationState);
     Mono<LoanApplicationState> findByName(String name);
+    Mono<LoanApplicationState> findById(Long id);
 }

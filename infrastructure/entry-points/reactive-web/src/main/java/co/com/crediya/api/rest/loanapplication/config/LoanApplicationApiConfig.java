@@ -7,6 +7,7 @@ import co.com.crediya.api.rest.loanapplication.constant.LoanApplicationEndpoint;
 import co.com.crediya.api.rest.loanapplication.constant.LoanApplicationQueryParam;
 import co.com.crediya.api.rest.loanapplication.dto.CreateLoanApplicationRequestDto;
 import co.com.crediya.api.rest.loanapplication.dto.LoanApplicationResponseDto;
+import co.com.crediya.api.rest.loanapplication.dto.UpdateLoanApplicationStateRequestDto;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import org.springdoc.core.fn.builders.operation.Builder;
 import org.springframework.http.HttpStatus;
@@ -36,6 +37,40 @@ public class LoanApplicationApiConfig {
                 )
                 .response(responseBuilder()
                         .responseCode(HttpStatus.CREATED.name())
+                        .content(contentBuilder()
+                                .mediaType(MediaType.APPLICATION_JSON_VALUE)
+                                .schema(schemaBuilder()
+                                        .implementation(LoanApplicationResponseDto.class)
+                                )
+                        )
+                )
+                .response(responseBuilder()
+                        .responseCode(HttpStatus.BAD_REQUEST.name())
+                        .content(contentBuilder()
+                                .mediaType(MediaType.APPLICATION_JSON_VALUE)
+                                .schema(schemaBuilder()
+                                        .implementation(ErrorResponse.class)
+                                )
+                        )
+                );
+    }
+
+    public static Consumer<Builder> updateLoanApplicationStateDocsConsumer(){
+        return builder -> builder
+                .summary(LoanApplicationEndpoint.UPDATE_LOAN_APPLICATION_STATE.getSummary())
+                .description(LoanApplicationEndpoint.UPDATE_LOAN_APPLICATION_STATE.getDescription())
+                .operationId(LoanApplicationEndpoint.UPDATE_LOAN_APPLICATION_STATE.getOperationId())
+                .requestBody(requestBodyBuilder()
+                        .required(true)
+                        .content(contentBuilder()
+                                .mediaType(MediaType.APPLICATION_JSON_VALUE)
+                                .schema(schemaBuilder()
+                                        .implementation(UpdateLoanApplicationStateRequestDto.class)
+                                )
+                        )
+                )
+                .response(responseBuilder()
+                        .responseCode(HttpStatus.OK.name())
                         .content(contentBuilder()
                                 .mediaType(MediaType.APPLICATION_JSON_VALUE)
                                 .schema(schemaBuilder()

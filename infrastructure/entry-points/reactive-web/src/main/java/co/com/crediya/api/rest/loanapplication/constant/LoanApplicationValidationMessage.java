@@ -7,4 +7,5 @@ public class LoanApplicationValidationMessage {
     public static final String TERM_REQUIRED = "El plazo del préstamo es obligatorio";
     public static final String TERM_MIN = "El plazo debe ser al menos de 1 mes";
     public static final String TYPE_REQUIRED = "El tipo de préstamo es obligatorio";
+    public static final String STATE_REQUIRED = "El estado es obligatorio";
 }

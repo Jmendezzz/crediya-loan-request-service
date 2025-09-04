@@ -34,3 +34,8 @@ cors:
 security:
   jwt:
     secret: "${JWT_SECRET}"
+adapter:
+  sqs:
+    region: "us-east-1"
+    queues:
+      loanApplicationStateChanged: ${LOAN_APPLICATION_STATUS_CHANGED_QUEUE}
