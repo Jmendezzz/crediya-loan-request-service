@@ -5,9 +5,15 @@ import lombok.Getter;
 @Getter
 public enum UserWebClientLog {
 
-    REQUEST_START("Calling UserService to validate existence of identityNumber={}"),
-    REQUEST_SUCCESS("UserService response: exists={} for identityNumber={}"),
-    REQUEST_ERROR("Error calling UserService for identityNumber={} - {}");
+    EXISTS_BY_IDENTITY_NUMBER_REQUEST_START("Calling UserService to validate existence of identityNumber={}"),
+    EXISTS_BY_IDENTITY_NUMBER_REQUEST_SUCCESS("UserService response: exists={} for identityNumber={}"),
+    EXISTS_BY_IDENTITY_NUMBER_REQUEST_ERROR("Error calling UserService for identityNumber={} - {}"),
+
+    GET_BY_IDENTITY_NUMBER_REQUEST_START("Calling UserService with identityNumber={}"),
+    GET_BY_IDENTITY_NUMBER_REQUEST_NOT_FOUND("User not found for identityNumber={}"),
+    GET_BY_IDENTITY_NUMBER_REQUEST_SUCCESS("UserService response success for identityNumber={}"),
+    GET_BY_IDENTITY_NUMBER_REQUEST_ERROR("Error calling UserService for identityNumber={} - {}");
+
 
     private final String message;
 
