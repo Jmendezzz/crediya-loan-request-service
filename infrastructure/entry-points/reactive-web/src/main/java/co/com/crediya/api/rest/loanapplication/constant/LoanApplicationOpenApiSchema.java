@@ -9,6 +9,7 @@ public class LoanApplicationOpenApiSchema {
     public static final String STATE_ID_DESCRIPTION = "ID del estado de la solicitud (generalmente asignado automáticamente)";
     public static final String TYPE_SCHEMA_DESCRIPTION = "Objeto que representa el tipo de préstamo";
     public static final String STATE_SCHEMA_DESCRIPTION = "Objeto que representa el estado de la solicitud";
+    public static final String STATE_ID_SCHEMA_DESCRIPTION = "Id que representa el estado de la solicitud";
 
     public static final String IDENTITY_NUMBER_EXAMPLE = "1234567890";
     public static final String AMOUNT_EXAMPLE = "5000000";

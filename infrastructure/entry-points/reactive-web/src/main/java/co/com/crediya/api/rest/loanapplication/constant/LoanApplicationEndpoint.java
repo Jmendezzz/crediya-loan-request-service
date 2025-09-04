@@ -17,6 +17,12 @@ public enum LoanApplicationEndpoint {
             "getLoanApplications",
             "Obtener y filtrar solicitudes de prestamo",
             "Obtener y filtrar solicitudes de prestamo por parte de un admin / asesor"
+    ),
+    UPDATE_LOAN_APPLICATION_STATE(
+            "/{id}/state",
+            "updateLoanApplicationState",
+            "Actualizar estado de solicitud",
+            "Permite a un asesor aprobar o rechazar una solicitud"
     );
 
     private final String path;

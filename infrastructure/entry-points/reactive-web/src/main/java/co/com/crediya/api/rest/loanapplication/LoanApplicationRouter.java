@@ -3,9 +3,11 @@ package co.com.crediya.api.rest.loanapplication;
 import co.com.crediya.api.dto.PageRequestDto;
 import co.com.crediya.api.rest.loanapplication.config.LoanApplicationApiConfig;
 import co.com.crediya.api.rest.loanapplication.constant.LoanApplicationEndpoint;
+import co.com.crediya.api.rest.loanapplication.constant.LoanApplicationPathVariable;
 import co.com.crediya.api.rest.loanapplication.constant.LoanApplicationQueryParam;
 import co.com.crediya.api.rest.loanapplication.dto.CreateLoanApplicationRequestDto;
 import co.com.crediya.api.rest.loanapplication.dto.LoanApplicationFilterRequestDto;
+import co.com.crediya.api.rest.loanapplication.dto.UpdateLoanApplicationStateRequestDto;
 import co.com.crediya.api.utils.QueryParamParser;
 import org.springdoc.webflux.core.fn.SpringdocRouteBuilder;
 import org.springframework.context.annotation.Bean;
@@ -54,6 +56,18 @@ public class LoanApplicationRouter {
                         },
                         ops -> LoanApplicationApiConfig.getLoanApplicationsDocsConsumer().accept(ops)
                 )
+                .PATCH(LoanApplicationEndpoint.UPDATE_LOAN_APPLICATION_STATE.getPath(),
+                        req -> {
+                            Long loanApplicationId = Long.valueOf(req.pathVariable(LoanApplicationPathVariable.LOAN_APPLICATION_ID.getPathVariable()));
+                            return req.bodyToMono(UpdateLoanApplicationStateRequestDto.class)
+                                    .flatMap(dto -> handler.updateLoanApplicationState(loanApplicationId, dto))
+                                    .flatMap(response -> ServerResponse.ok()
+                                            .contentType(MediaType.APPLICATION_JSON)
+                                            .bodyValue(response));
+                        },
+                        ops -> LoanApplicationApiConfig.updateLoanApplicationStateDocsConsumer().accept(ops)
+                )
+
                 .build();
     }
 }
