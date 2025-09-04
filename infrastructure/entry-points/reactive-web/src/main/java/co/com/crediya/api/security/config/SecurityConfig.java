@@ -40,6 +40,8 @@ public class SecurityConfig {
                         .hasRole(RoleConstant.APPLICANT.getName())
                         .pathMatchers(LoanApplicationEndpoint.GET_LOAN_APPLICATIONS.getPath())
                         .hasRole(RoleConstant.ADMINISTRATOR.getName())
+                        .pathMatchers(LoanApplicationEndpoint.UPDATE_LOAN_APPLICATION_STATE.getPath())
+                        .hasRole(RoleConstant.ADMINISTRATOR.getName())
                         .anyExchange().authenticated()
                 )
                 .exceptionHandling(exceptions ->
