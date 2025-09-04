@@ -3,16 +3,20 @@ package co.com.crediya.usecase.loanapplication;
 import co.com.crediya.model.auth.RoleAuth;
 import co.com.crediya.model.auth.UserAuth;
 import co.com.crediya.model.auth.gateways.AuthService;
-import co.com.crediya.model.common.exceptions.PageQuery;
-import co.com.crediya.model.common.exceptions.PagedQuery;
-import co.com.crediya.model.common.exceptions.Paginated;
+import co.com.crediya.model.common.queries.PageQuery;
+import co.com.crediya.model.common.queries.PagedQuery;
+import co.com.crediya.model.common.results.Paginated;
 import co.com.crediya.model.loanapplication.LoanApplication;
-import co.com.crediya.model.loanapplication.LoanApplicationQuery;
+import co.com.crediya.model.loanapplication.commands.UpdateLoanApplicationStateCommand;
+import co.com.crediya.model.loanapplication.exceptions.LoanApplicationNotFoundException;
+import co.com.crediya.model.loanapplication.gateways.LoanApplicationEventPublisher;
+import co.com.crediya.model.loanapplication.queries.LoanApplicationQuery;
 import co.com.crediya.model.loanapplication.exceptions.CustomerNotFoundException;
 import co.com.crediya.model.loanapplication.exceptions.LoanApplicationAmountOutOfRangeException;
 import co.com.crediya.model.loanapplication.exceptions.UnauthorizedLoanApplicationException;
 import co.com.crediya.model.loanapplication.gateways.LoanApplicationRepository;
-import co.com.crediya.model.loanapplication.gateways.UserService;
+import co.com.crediya.model.user.User;
+import co.com.crediya.model.user.gateways.UserService;
 import co.com.crediya.model.loanapplicationstate.LoanApplicationState;
 import co.com.crediya.model.loanapplicationstate.constants.LoanApplicationStateConstant;
 import co.com.crediya.model.loanapplicationstate.exceptions.LoanApplicationStateNotFoundException;
@@ -47,6 +51,9 @@ class LoanApplicationUseCaseTest {
     private LoanApplicationStateRepository loanApplicationStateRepository;
 
     @Mock
+    private LoanApplicationEventPublisher loanApplicationEventPublisher;
+
+    @Mock
     private UserService userService;
 
     @Mock
@@ -59,6 +66,7 @@ class LoanApplicationUseCaseTest {
     private LoanApplicationType loanType;
     private LoanApplicationState state;
     private UserAuth currentUser;
+    private User user;
 
     @BeforeEach
     void setUp() {
@@ -81,6 +89,14 @@ class LoanApplicationUseCaseTest {
                 .customerIdentityNumber("12345")
                 .amount(1_000_000.0)
                 .type(LoanApplicationType.builder().id(1L).build())
+                .build();
+
+        user  = User.builder()
+                .identityNumber("12345")
+                .email("user@test.com")
+                .firstName("Test")
+                .lastName("User")
+                .baseSalary(2_000_000L)
                 .build();
 
         currentUser = new UserAuth(3L, "test@example.com", "12345", new RoleAuth(2L, "SOLICITANTE"));
@@ -328,4 +344,67 @@ class LoanApplicationUseCaseTest {
 
         verify(loanApplicationRepository).findByCriteria(pagedQuery);
     }
+
+    @Test
+    void shouldUpdateLoanApplicationStateSuccessfully() {
+        UpdateLoanApplicationStateCommand command =
+                new UpdateLoanApplicationStateCommand(application.getId(), state.getId());
+
+        when(loanApplicationRepository.findById(application.getId())).thenReturn(Mono.just(application));
+        when(loanApplicationStateRepository.findById(state.getId())).thenReturn(Mono.just(state));
+
+        when(userService.getUserByIdentityNumber(application.getCustomerIdentityNumber()))
+                .thenReturn(Mono.just(user));
+
+        when(loanApplicationRepository.save(application)).thenReturn(Mono.just(application));
+
+        when(loanApplicationEventPublisher.publish(any())).thenReturn(Mono.empty());
+
+        StepVerifier.create(useCase.updateLoanApplicationState(command))
+                .expectNextMatches(updated ->
+                        updated.getState().getId().equals(state.getId()) &&
+                                updated.getCustomerIdentityNumber().equals("12345"))
+                .verifyComplete();
+
+        verify(loanApplicationRepository).findById(application.getId());
+        verify(loanApplicationStateRepository).findById(state.getId());
+        verify(userService).getUserByIdentityNumber("12345");
+        verify(loanApplicationRepository).save(application);
+        verify(loanApplicationEventPublisher).publish(any());
+    }
+
+    @Test
+    void shouldThrowExceptionWhenLoanApplicationNotFound() {
+        UpdateLoanApplicationStateCommand command =
+                new UpdateLoanApplicationStateCommand(99L, state.getId());
+
+        when(loanApplicationRepository.findById(99L)).thenReturn(Mono.empty());
+
+        StepVerifier.create(useCase.updateLoanApplicationState(command))
+                .expectError(LoanApplicationNotFoundException.class)
+                .verify();
+
+        verify(loanApplicationRepository).findById(99L);
+        verifyNoInteractions(userService);
+        verifyNoInteractions(loanApplicationEventPublisher);
+    }
+
+    @Test
+    void shouldThrowExceptionWhenStateNotFoundInEventPusblisher() {
+        UpdateLoanApplicationStateCommand command =
+                new UpdateLoanApplicationStateCommand(application.getId(), 99L);
+
+        when(loanApplicationRepository.findById(application.getId())).thenReturn(Mono.just(application));
+        when(loanApplicationStateRepository.findById(99L)).thenReturn(Mono.empty());
+
+        StepVerifier.create(useCase.updateLoanApplicationState(command))
+                .expectError(LoanApplicationStateNotFoundException.class)
+                .verify();
+
+        verify(loanApplicationRepository).findById(application.getId());
+        verify(loanApplicationStateRepository).findById(99L);
+        verifyNoInteractions(userService);
+        verifyNoInteractions(loanApplicationEventPublisher);
+    }
+
 }
