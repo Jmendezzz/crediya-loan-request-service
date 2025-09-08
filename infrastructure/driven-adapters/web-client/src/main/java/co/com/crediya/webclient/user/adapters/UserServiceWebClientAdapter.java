@@ -10,6 +10,7 @@ import co.com.crediya.webclient.user.dtos.UserExistsResponseDto;
 import co.com.crediya.webclient.user.dtos.UserResponseDto;
 import co.com.crediya.webclient.user.mappers.UserResponseMapper;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Service;
@@ -20,27 +21,21 @@ import reactor.core.publisher.Mono;
 @Slf4j
 public class UserServiceWebClientAdapter implements UserService {
 
-    private final WebClient.Builder webClientBuilder;
-    private final String userServiceBaseUrl;
+    private final WebClient userWebClient;
     private final UserResponseMapper userResponseMapper;
 
     public UserServiceWebClientAdapter(
-            WebClient.Builder webClientBuilder,
-            @Value("${services.user.base-url}") String userServiceBaseUrl,
+            @Qualifier("userWebClient") WebClient userWebClient,
             UserResponseMapper userResponseMapper
     ) {
-        this.webClientBuilder = webClientBuilder;
-        this.userServiceBaseUrl = userServiceBaseUrl;
+        this.userWebClient = userWebClient;
         this.userResponseMapper = userResponseMapper;
     }
-
     @Override
     public Mono<Boolean> existsByIdentityNumber(String identityNumber) {
         log.info(UserWebClientLog. EXISTS_BY_IDENTITY_NUMBER_REQUEST_START.getMessage(), identityNumber);
 
-        return webClientBuilder
-                .baseUrl(userServiceBaseUrl)
-                .build()
+        return userWebClient
                 .get()
                 .uri(UserEndpoint.VALIDATE_USER_EXISTENCE_BY_IDENTITY_NUMBER.getEndpoint(), identityNumber)
                 .retrieve()
@@ -61,9 +56,7 @@ public class UserServiceWebClientAdapter implements UserService {
     public Mono<User> getUserByIdentityNumber(String identityNumber) {
         log.info(UserWebClientLog.GET_BY_IDENTITY_NUMBER_REQUEST_START.getMessage(), identityNumber);
 
-        return webClientBuilder
-                .baseUrl(userServiceBaseUrl)
-                .build()
+        return userWebClient
                 .get()
                 .uri(UserEndpoint.GET_BY_IDENTITY_NUMBER.getEndpoint(), identityNumber)
                 .retrieve()
