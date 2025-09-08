@@ -1,5 +1,6 @@
 package co.com.crediya.webclient.config;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpHeaders;
@@ -29,4 +30,17 @@ public class WebClientConfig {
                                 })
                 );
     }
+
+    @Bean("userWebClient")
+    public WebClient userWebClient(WebClient.Builder builder,
+                                   @Value("${services.user.base-url}") String baseUrl) {
+        return builder.baseUrl(baseUrl).build();
+    }
+
+    @Bean("authWebClient")
+    public WebClient authWebClient(WebClient.Builder builder,
+                                   @Value("${services.user.base-url}") String baseUrl) {
+        return builder.baseUrl(baseUrl).build();
+    }
+
 }

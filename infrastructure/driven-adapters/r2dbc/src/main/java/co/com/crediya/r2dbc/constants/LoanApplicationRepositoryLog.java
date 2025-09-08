@@ -15,7 +15,12 @@ public enum LoanApplicationRepositoryLog {
 
     FIND_CRITERIA_START("Finding LoanApplications by criteria={}"),
     FIND_CRITERIA_SUCCESS("Found {} LoanApplications by criteria={}"),
-    FIND_CRITERIA_ERROR("Error finding LoanApplications by criteria={}, cause={}");
+    FIND_CRITERIA_ERROR("Error finding LoanApplications by criteria={}, cause={}"),
+
+
+    FIND_APPROVED_BY_CUSTOMER_START("Finding approved loan applications for identityNumber={}"),
+    FIND_APPROVED_BY_CUSTOMER_SUCCESS("Successfully found approved loan applications for identityNumber={}"),
+    FIND_APPROVED_BY_CUSTOMER_ERROR("Error finding approved loan applications for identityNumber={}, error={}");
 
     private final String message;
 

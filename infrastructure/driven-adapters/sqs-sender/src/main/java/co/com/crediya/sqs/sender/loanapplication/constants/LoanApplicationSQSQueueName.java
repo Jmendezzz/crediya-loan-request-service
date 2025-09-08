@@ -6,6 +6,7 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 public enum LoanApplicationSQSQueueName {
-    LOAN_APPLICATION_STATE_CHANGED("loanApplicationStateChanged");
+    LOAN_APPLICATION_STATE_CHANGED("loanApplicationStateChanged"),
+    LOAN_APPLICATION_AUTO_VALIDATION_REQUESTED("loanApplicationAutoValidationRequested");
     private final String key;
 }

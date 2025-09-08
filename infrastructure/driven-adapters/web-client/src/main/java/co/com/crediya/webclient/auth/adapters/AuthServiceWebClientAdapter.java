@@ -8,6 +8,7 @@ import co.com.crediya.webclient.auth.constants.AuthWebClientLog;
 import co.com.crediya.webclient.auth.dtos.AuthMeResponseDto;
 import co.com.crediya.webclient.exceptions.WebClientException;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -17,24 +18,19 @@ import reactor.core.publisher.Mono;
 @Slf4j
 public class AuthServiceWebClientAdapter implements AuthService {
 
-    private final WebClient.Builder webClientBuilder;
-    private final String authServiceBaseUrl;
+    private final WebClient authWebClient;
 
     public AuthServiceWebClientAdapter(
-            WebClient.Builder webClientBuilder,
-            @Value("${services.user.base-url}") String authServiceBaseUrl
+            @Qualifier("authWebClient") WebClient authWebClient
     ) {
-        this.webClientBuilder = webClientBuilder;
-        this.authServiceBaseUrl = authServiceBaseUrl;
+        this.authWebClient = authWebClient;
     }
 
     @Override
     public Mono<UserAuth> getCurrentUser() {
         log.info(AuthWebClientLog.REQUEST_START.getMessage());
 
-        return webClientBuilder
-                .baseUrl(authServiceBaseUrl)
-                .build()
+        return authWebClient
                 .get()
                 .uri(AuthEndpoint.ME.getEndpoint())
                 .retrieve()

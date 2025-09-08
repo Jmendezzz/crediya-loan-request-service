@@ -1,5 +1,6 @@
 package co.com.crediya.sqs.sender.loanapplication;
 
+import co.com.crediya.model.loanapplication.events.LoanApplicationAutoValidationRequested;
 import co.com.crediya.model.loanapplication.events.LoanApplicationStateChanged;
 import co.com.crediya.model.loanapplication.gateways.LoanApplicationEventPublisher;
 import co.com.crediya.sqs.sender.SQSSender;
@@ -23,4 +24,11 @@ public class LoanApplicationEventPublisherSQSAdapter implements LoanApplicationE
                 properties.queues().get(LoanApplicationSQSQueueName.LOAN_APPLICATION_STATE_CHANGED.getKey())
                 ).then();
     }
+
+    @Override
+    public Mono<Void> publish(LoanApplicationAutoValidationRequested event) {
+        return publisher.publish(
+                event,
+                properties.queues().get(LoanApplicationSQSQueueName.LOAN_APPLICATION_AUTO_VALIDATION_REQUESTED.getKey())
+        ).then();    }
 }

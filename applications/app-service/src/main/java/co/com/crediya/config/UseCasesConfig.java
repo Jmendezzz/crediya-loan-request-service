@@ -1,6 +1,7 @@
 package co.com.crediya.config;
 
 import co.com.crediya.model.auth.gateways.AuthService;
+import co.com.crediya.model.loanapplication.factories.LoanApplicationEventFactory;
 import co.com.crediya.model.loanapplication.gateways.LoanApplicationEventPublisher;
 import co.com.crediya.model.loanapplication.gateways.LoanApplicationRepository;
 import co.com.crediya.model.user.gateways.UserService;
@@ -27,15 +28,22 @@ public class UseCasesConfig {
                 LoanApplicationStateRepository loanApplicationStateRepository,
                 UserService userService,
                 AuthService authService,
-                LoanApplicationEventPublisher loanApplicationEventPublisher
+                LoanApplicationEventPublisher loanApplicationEventPublisher,
+                LoanApplicationEventFactory loanApplicationEventFactory
                 ){
                 return new LoanApplicationUseCase(
                         loanApplicationRepository,
                         loanApplicationTypeRepository,
                         loanApplicationStateRepository,
+                        loanApplicationEventFactory,
                         userService,
                         authService,
                         loanApplicationEventPublisher
                 );
+        }
+
+        @Bean
+        public LoanApplicationEventFactory loanApplicationEventFactory(){
+                return  new LoanApplicationEventFactory();
         }
 }
