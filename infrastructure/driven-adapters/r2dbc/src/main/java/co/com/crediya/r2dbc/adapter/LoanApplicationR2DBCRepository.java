@@ -6,8 +6,12 @@ import co.com.crediya.model.common.results.Paginated;
 import co.com.crediya.model.loanapplication.LoanApplication;
 import co.com.crediya.model.loanapplication.queries.LoanApplicationQuery;
 import co.com.crediya.model.loanapplication.gateways.LoanApplicationRepository;
+import co.com.crediya.model.loanapplicationstate.constants.LoanApplicationStateConstant;
+import co.com.crediya.r2dbc.constants.LoanApplicationColumn;
 import co.com.crediya.r2dbc.constants.LoanApplicationRepositoryLog;
+import co.com.crediya.r2dbc.constants.LoanApplicationStateColumn;
 import co.com.crediya.r2dbc.entity.LoanApplicationEntity;
+import co.com.crediya.r2dbc.entity.LoanApplicationStateEntity;
 import co.com.crediya.r2dbc.filter.CriteriaBuilder;
 import co.com.crediya.r2dbc.filter.loanapplication.LoanApplicationQueryScenario;
 import co.com.crediya.r2dbc.mapper.LoanApplicationEntityMapper;
@@ -92,6 +96,37 @@ public class LoanApplicationR2DBCRepository implements LoanApplicationRepository
         return loanApplicationReactiveRepository
                 .findById(id)
                 .flatMap(this::enrichWithRelations);
+    }
+
+    public Flux<LoanApplication> findApprovedByCustomerIdentityNumber(String identityNumber) {
+        log.info(
+                LoanApplicationRepositoryLog.FIND_APPROVED_BY_CUSTOMER_START.getMessage(),
+                identityNumber
+        );
+
+        return template.select(
+                        Query.query(Criteria.where(LoanApplicationStateColumn.NAME.getColumn())
+                                .is(LoanApplicationStateConstant.APPROVED.getName())),
+                        LoanApplicationStateEntity.class
+                )
+                .map(LoanApplicationStateEntity::getId)
+                .collectList()
+                .flatMapMany(approvedStateIds -> {
+                    Criteria criteria = Criteria
+                            .where(LoanApplicationColumn.CUSTOMER_IDENTITY_NUMBER.getColumn()).is(identityNumber)
+                            .and(LoanApplicationColumn.STATE_ID.getColumn()).in(approvedStateIds);
+
+                    return template.select(Query.query(criteria), LoanApplicationEntity.class)
+                            .flatMap(this::enrichWithRelations);
+                })
+                .doOnComplete(() -> log.info(
+                        LoanApplicationRepositoryLog.FIND_APPROVED_BY_CUSTOMER_SUCCESS.getMessage(),
+                        identityNumber
+                ))
+                .doOnError(error -> log.error(
+                        LoanApplicationRepositoryLog.FIND_APPROVED_BY_CUSTOMER_ERROR.getMessage(),
+                        identityNumber, error.getMessage(), error
+                ));
     }
 
     private Mono<LoanApplication> enrichWithRelations(LoanApplicationEntity loanApplication) {
