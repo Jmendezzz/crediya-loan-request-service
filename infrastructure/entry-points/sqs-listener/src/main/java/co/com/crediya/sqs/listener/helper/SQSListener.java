@@ -27,16 +27,16 @@ public class SQSListener {
 
     private final SqsAsyncClient sqsAsyncClient;
     private final SQSProperties properties;
-    private final SQSProcessor processor; // 👈 inyectamos tu processor
+    private final SQSProcessor processor;
 
     @PostConstruct
     public void start() {
-        log.info("🚀 Iniciando Reactive SQS Listener en cola: {}", properties.queueUrl());
+        log.info("Iniciando Reactive SQS Listener en cola: {}", properties.queueUrl());
 
         Flux.defer(this::listen)
                 .subscribeOn(Schedulers.boundedElastic())
-                .repeat() // sigue escuchando
-                .retry()  // se recupera ante errores
+                .repeat()
+                .retry()
                 .subscribe();
     }
 
@@ -49,15 +49,14 @@ public class SQSListener {
                         .build()))
                 .flatMapMany(response -> Flux.fromIterable(response.messages()))
                 .flatMap(this::handleMessage, properties.numberOfThreads())
-                .onErrorContinue((ex, obj) -> log.error("❌ Error en listener con {}", obj, ex));
+                .onErrorContinue((ex, obj) -> log.error("Error en listener con {}", obj, ex));
     }
 
     private Mono<Void> handleMessage(Message message) {
-        return processor.apply(message) // 👈 usa tu lógica de negocio
-                .then(deleteMessage(message)) // 👈 elimina el mensaje solo si se procesó
+        return processor.apply(message)
+                .then(deleteMessage(message))
                 .onErrorResume(ex -> {
-                    log.error("❌ Error procesando mensaje (ID={}): {}", message.messageId(), ex.getMessage(), ex);
-                    // No se elimina el mensaje → quedará visible cuando expire el visibilityTimeout
+                    log.error("Error procesando mensaje (ID={}): {}", message.messageId(), ex.getMessage(), ex);
                     return Mono.empty();
                 });
     }
@@ -67,7 +66,7 @@ public class SQSListener {
                         .queueUrl(properties.queueUrl())
                         .receiptHandle(message.receiptHandle())
                         .build()))
-                .doOnSuccess(r -> log.info("✅ Mensaje eliminado (ID={})", message.messageId()))
+                .doOnSuccess(r -> log.info("Mensaje eliminado (ID={})", message.messageId()))
                 .then();
     }
 }
