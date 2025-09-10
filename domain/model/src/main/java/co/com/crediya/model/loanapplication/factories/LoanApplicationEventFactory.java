@@ -1,12 +1,14 @@
 package co.com.crediya.model.loanapplication.factories;
 
 import co.com.crediya.model.loanapplication.LoanApplication;
+import co.com.crediya.model.loanapplication.events.LoanApplicationApproved;
 import co.com.crediya.model.loanapplication.events.LoanApplicationAutoValidationCompleted;
 import co.com.crediya.model.loanapplication.events.LoanApplicationAutoValidationRequested;
 import co.com.crediya.model.loanapplication.events.LoanApplicationStateChanged;
 import co.com.crediya.model.loanapplicationtype.LoanApplicationType;
 import co.com.crediya.model.user.User;
 
+import java.time.Instant;
 import java.util.List;
 
 public class LoanApplicationEventFactory {
@@ -70,5 +72,10 @@ public class LoanApplicationEventFactory {
                 .customerLastName(user.lastName())
                 .paymentPlan(plan != null ? plan : List.of())
                 .build();
+    }
+
+
+    public LoanApplicationApproved buildLoanApplicationApproved(LoanApplication loanApplication){
+        return new LoanApplicationApproved(loanApplication.getId(), loanApplication.getAmount(), loanApplication.getCustomerIdentityNumber(), Instant.now());
     }
 }
