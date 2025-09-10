@@ -48,40 +48,31 @@ public class LoanApplicationUseCase {
     private final LoanApplicationEventPublisher loanApplicationEventPublisher;
 
     public Mono<LoanApplication> createLoanApplication(LoanApplication application) {
-        return validateOwnership(application.getCustomerIdentityNumber())
-                .then(validateUser(application.getCustomerIdentityNumber()))
-                .then(Mono.defer(() -> validateType(application.getType().getId())
-                        .doOnNext(type -> validateAmount(application.getAmount(), type))
-                        .flatMap(type -> validateInitialState(type)
-                                .map(state -> Tuples.of(type, state)))))
-                .flatMap(tuple -> {
-                    LoanApplicationType type = tuple.getT1();
-                    LoanApplicationState state = tuple.getT2();
+        String identityNumber = application.getCustomerIdentityNumber();
+        Long typeId = application.getType().getId();
+        Double requestedAmount = application.getAmount();
 
-                    application.setType(type);
-                    application.setState(state);
-
-                    return loanApplicationRepository.save(application)
-                            .flatMap(saved -> {
-                                if (Boolean.TRUE.equals(type.getAutoValidation())) {
-                                    return publishAutoValidationEvent(saved, type)
-                                            .thenReturn(saved);
-                                }
-                                return Mono.just(saved);
-                            });
-                });
+        return validateOwnership(identityNumber)
+                .then(validateUser(identityNumber))
+                .then(validateType(typeId))
+                .doOnNext(type -> validateAmount(requestedAmount, type))
+                .flatMap(type -> validateInitialState(type)
+                        .map(state -> {
+                            application.setType(type);
+                            application.setState(state);
+                            return application;
+                        }))
+                .flatMap(loanApplicationRepository::save)
+                .flatMap(saved -> processAutoValidationIfNeeded(saved, saved.getType()));
     }
-
 
 
     private Mono<Void> validateOwnership(String identityNumber) {
         return authService.getCurrentUser()
-                .flatMap(userAuth -> {
-                    if (!userAuth.identityNumber().equals(identityNumber)) {
-                        return Mono.error(new UnauthorizedLoanApplicationException());
-                    }
-                    return Mono.empty();
-                });
+                .flatMap(userAuth ->
+                        userAuth.identityNumber().equals(identityNumber)
+                                ? Mono.empty()
+                                : Mono.error(new UnauthorizedLoanApplicationException()));
     }
 
     private Mono<Void> validateUser(String identityNumber) {
@@ -96,10 +87,10 @@ public class LoanApplicationUseCase {
                 .switchIfEmpty(Mono.error(new LoanApplicationTypeNotFoundException()));
     }
 
-    private void validateAmount(Double requested, LoanApplicationType type) {
-        if (requested < type.getMinAmount() || requested > type.getMaxAmount()) {
+    private void validateAmount(Double requestedAmount, LoanApplicationType type) {
+        if (requestedAmount < type.getMinAmount() || requestedAmount > type.getMaxAmount()) {
             throw new LoanApplicationAmountOutOfRangeException(
-                    requested,
+                    requestedAmount,
                     type.getMinAmount(),
                     type.getMaxAmount()
             );
@@ -107,13 +98,30 @@ public class LoanApplicationUseCase {
     }
 
     private Mono<LoanApplicationState> validateInitialState(LoanApplicationType type) {
-        String stateName = type.getAutoValidation()
+        String stateName = Boolean.TRUE.equals(type.getAutoValidation())
                 ? LoanApplicationStateConstant.PENDING_REVIEW.getName()
                 : LoanApplicationStateConstant.MANUAL_REVIEW.getName();
 
         return loanApplicationStateRepository.findByName(stateName)
                 .switchIfEmpty(Mono.error(new LoanApplicationStateNotFoundException()));
     }
+
+    private Mono<LoanApplication> processAutoValidationIfNeeded(LoanApplication application, LoanApplicationType type) {
+        if (Boolean.TRUE.equals(type.getAutoValidation())) {
+            return publishAutoValidationEvent(application, type)
+                    .thenReturn(application);
+        }
+        return Mono.just(application);
+    }
+
+    private Mono<LoanApplication> publishLoanApprovedEventIfNeeded(LoanApplication loanApplication) {
+        if (loanApplication.getState().getName().equals(LoanApplicationStateConstant.APPROVED.getName())) {
+            return loanApplicationEventPublisher.publish(loanApplicationEventFactory.buildLoanApplicationApproved(loanApplication))
+                    .thenReturn(loanApplication);
+        }
+        return Mono.just(loanApplication);
+    }
+
 
     public Mono<Paginated<LoanApplication>> getLoanApplications(PagedQuery<LoanApplicationQuery> query){
         return loanApplicationRepository.findByCriteria(query);
@@ -122,7 +130,8 @@ public class LoanApplicationUseCase {
     public Mono<LoanApplication> updateLoanApplicationState(UpdateLoanApplicationStateCommand command) {
         return findApplicationAndState(command)
                 .flatMap(this::enrichWithUser)
-                .flatMap(this::saveAndPublish);
+                .flatMap(this::saveAndPublish)
+                .flatMap(this::publishLoanApprovedEventIfNeeded);
     }
 
     private Mono<Tuple2<LoanApplication, LoanApplicationState>> findApplicationAndState(UpdateLoanApplicationStateCommand command) {
@@ -179,7 +188,9 @@ public class LoanApplicationUseCase {
                     LoanApplicationState state = tuple.getT2();
                     app.setState(state);
                     return app;
-                }).flatMap(loanApplicationRepository::save);
+                })
+                .flatMap(loanApplicationRepository::save)
+                .flatMap(this::publishLoanApprovedEventIfNeeded);
     }
 
 }

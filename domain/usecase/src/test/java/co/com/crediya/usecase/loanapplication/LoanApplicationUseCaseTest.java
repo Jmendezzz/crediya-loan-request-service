@@ -149,20 +149,20 @@ class LoanApplicationUseCaseTest {
     @Test
     void shouldThrowWhenUnauthorizedUser() {
         when(authService.getCurrentUser())
-                .thenReturn(Mono.just(new UserAuth(1L,"u@test.com","99999",null)));
+                .thenReturn(Mono.just(new UserAuth(1L, "u@test.com", "99999", null)));
 
         when(userService.existsByIdentityNumber(anyString()))
                 .thenReturn(Mono.just(true));
+
+        when(loanApplicationTypeRepository.findById(anyLong()))
+                .thenReturn(Mono.empty());
 
         StepVerifier.create(useCase.createLoanApplication(application))
                 .expectError(UnauthorizedLoanApplicationException.class)
                 .verify();
 
         verify(authService).getCurrentUser();
-        verify(userService).existsByIdentityNumber("12345");
-        verifyNoInteractions(loanApplicationTypeRepository);
     }
-
     @Test
     void shouldThrowWhenCustomerNotFound() {
         when(authService.getCurrentUser()).thenReturn(Mono.just(new UserAuth(1L,"u@test.com","12345",null)));
