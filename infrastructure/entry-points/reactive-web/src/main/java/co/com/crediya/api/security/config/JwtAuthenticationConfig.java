@@ -1,11 +1,13 @@
 package co.com.crediya.api.security.config;
 
+import co.com.crediya.api.security.handler.AuthenticationHandler;
 import co.com.crediya.api.security.jwt.JwtReactiveAuthenticationManager;
 import co.com.crediya.api.security.jwt.JwtServerAuthenticationConverter;
 import co.com.crediya.model.auth.gateways.TokenService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.ReactiveAuthenticationManager;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.server.authentication.AuthenticationWebFilter;
 import org.springframework.security.web.server.authentication.ServerAuthenticationConverter;
 
@@ -25,10 +27,18 @@ public class JwtAuthenticationConfig {
     @Bean
     public AuthenticationWebFilter jwtAuthenticationWebFilter(
             ReactiveAuthenticationManager jwtAuthenticationManager,
-            ServerAuthenticationConverter jwtServerAuthenticationConverter
+            ServerAuthenticationConverter jwtServerAuthenticationConverter,
+            AuthenticationHandler authenticationHandler
     ) {
         AuthenticationWebFilter filter = new AuthenticationWebFilter(jwtAuthenticationManager);
         filter.setServerAuthenticationConverter(jwtServerAuthenticationConverter);
+        filter.setAuthenticationFailureHandler((webFilterExchange, ex) ->
+                authenticationHandler.commence(
+                        webFilterExchange.getExchange(),
+                        ex
+                )
+        );
+
         return filter;
     }
 }
